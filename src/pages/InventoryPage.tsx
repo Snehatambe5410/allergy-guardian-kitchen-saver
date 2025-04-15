@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Package, Plus, Search, Trash } from 'lucide-react';
 import { Button } from '../components/ui/button';
