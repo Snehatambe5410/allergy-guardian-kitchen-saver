@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { 
   Allergy, 
@@ -44,7 +43,11 @@ const initialUserProfile: UserProfile = {
       phone: "555-123-4567",
       email: "jane@example.com"
     }
-  ]
+  ],
+  avatar: undefined,
+  bio: "I'm a health-conscious individual who enjoys cooking and trying new recipes.",
+  email: "john.doe@example.com",
+  phoneNumber: "555-987-6543"
 };
 
 const initialInventory: FoodItem[] = [
@@ -156,7 +159,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setInventory(prev => prev.filter(item => item.id !== id));
   };
 
-  // Family member management
   const addFamilyMember = (member: FamilyMember) => {
     setFamilyMembers(prev => [...prev, member]);
   };
@@ -173,7 +175,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setFamilyMembers(prev => prev.filter(member => member.id !== id));
   };
 
-  // Recipe management
   const addRecipe = (recipe: Recipe) => {
     setRecipes(prev => [...prev, recipe]);
   };

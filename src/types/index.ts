@@ -28,6 +28,10 @@ export interface UserProfile {
   dietaryPreferences: string[];
   allergies: Allergy[];
   emergencyContacts: EmergencyContact[];
+  avatar?: string;
+  bio?: string;
+  phoneNumber?: string;
+  email?: string;
 }
 
 export interface FamilyMember {
