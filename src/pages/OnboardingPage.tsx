@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select"
+import { Allergy } from '../types';
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
@@ -24,10 +25,17 @@ const OnboardingPage = () => {
   // State variables
   const [name, setName] = useState('');
   const [dietaryPreferences, setDietaryPreferences] = useState<string[]>([]);
-  const [allergies, setAllergies] = useState([{ name: '', severity: 'mild' as 'mild' | 'moderate' | 'severe' }]);
-  const [emergencyContacts, setEmergencyContacts] = useState([
-    { name: '', relation: '', phone: '', email: '' },
-  ]);
+  const [allergies, setAllergies] = useState<Array<{
+    name: string;
+    severity: 'mild' | 'moderate' | 'severe';
+  }>>([{ name: '', severity: 'mild' }]);
+  
+  const [emergencyContacts, setEmergencyContacts] = useState<Array<{
+    name: string;
+    relation: string;
+    phone: string;
+    email: string;
+  }>>([{ name: '', relation: '', phone: '', email: '' }]);
 
   // New allergy form state
   const [newAllergy, setNewAllergy] = useState({ name: '', severity: 'mild' as 'mild' | 'moderate' | 'severe' });
@@ -38,10 +46,22 @@ const OnboardingPage = () => {
     if (userProfile) {
       setName(userProfile.name || '');
       setDietaryPreferences(userProfile.dietaryPreferences || []);
-      setAllergies(userProfile.allergies || [{ name: '', severity: 'mild' }]);
-      setEmergencyContacts(userProfile.emergencyContacts || [
-        { name: '', relation: '', phone: '', email: '' },
-      ]);
+      
+      if (userProfile.allergies && userProfile.allergies.length > 0) {
+        setAllergies(userProfile.allergies.map(a => ({
+          name: a.name,
+          severity: a.severity
+        })));
+      }
+      
+      if (userProfile.emergencyContacts && userProfile.emergencyContacts.length > 0) {
+        setEmergencyContacts(userProfile.emergencyContacts.map(c => ({
+          name: c.name,
+          relation: c.relation,
+          phone: c.phone,
+          email: c.email || ''
+        })));
+      }
     }
   }, [userProfile]);
 
@@ -65,13 +85,16 @@ const OnboardingPage = () => {
 
   // Handlers for allergies
   const addAllergy = () => {
-    setAllergies([...allergies, { name: '', severity: 'mild' as 'mild' | 'moderate' | 'severe' }]);
+    setAllergies([...allergies, { name: '', severity: 'mild' }]);
   };
 
   const updateAllergy = (index: number, field: string, value: string) => {
     const updatedAllergies = [...allergies];
-    // Typescript complains if I don't use `any` here
-    (updatedAllergies[index] as any)[field] = value;
+    if (field === 'name') {
+      updatedAllergies[index].name = value;
+    } else if (field === 'severity') {
+      updatedAllergies[index].severity = value as 'mild' | 'moderate' | 'severe';
+    }
     setAllergies(updatedAllergies);
   };
 
@@ -91,8 +114,15 @@ const OnboardingPage = () => {
 
   const updateContact = (index: number, field: string, value: string) => {
     const updatedContacts = [...emergencyContacts];
-    // Typescript complains if I don't use `any` here
-    (updatedContacts[index] as any)[field] = value;
+    if (field === 'name') {
+      updatedContacts[index].name = value;
+    } else if (field === 'relation') {
+      updatedContacts[index].relation = value;
+    } else if (field === 'phone') {
+      updatedContacts[index].phone = value;
+    } else if (field === 'email') {
+      updatedContacts[index].email = value;
+    }
     setEmergencyContacts(updatedContacts);
   };
 
@@ -104,12 +134,33 @@ const OnboardingPage = () => {
 
   // Submit handler
   const handleSubmit = () => {
+    // Convert the allergies to the correct format with IDs
+    const formattedAllergies: Allergy[] = allergies
+      .filter(a => a.name.trim() !== '') // Filter out empty allergies
+      .map(a => ({
+        id: crypto.randomUUID(), // Generate a unique ID
+        name: a.name,
+        severity: a.severity
+      }));
+    
+    // Convert contacts to the correct format with IDs
+    const formattedContacts = emergencyContacts
+      .filter(c => c.name.trim() !== '') // Filter out empty contacts
+      .map(c => ({
+        id: crypto.randomUUID(), // Generate a unique ID
+        name: c.name,
+        relation: c.relation,
+        phone: c.phone,
+        email: c.email || undefined // Make email optional
+      }));
+    
     const profileData = {
       name,
       dietaryPreferences,
-      allergies,
-      emergencyContacts,
+      allergies: formattedAllergies,
+      emergencyContacts: formattedContacts,
     };
+    
     updateUserProfile(profileData);
     navigate('/inventory');
   };

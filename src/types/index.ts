@@ -29,3 +29,25 @@ export interface UserProfile {
   allergies: Allergy[];
   emergencyContacts: EmergencyContact[];
 }
+
+export interface FamilyMember {
+  id: string;
+  name: string;
+  relation: string;
+  dietaryPreferences: string[];
+  allergies: Allergy[];
+  notes?: string;
+}
+
+export interface Recipe {
+  id: string;
+  name: string;
+  description?: string;
+  ingredients: string[];
+  instructions: string[];
+  allergens: string[];
+  preparationTime: number;
+  servings: number;
+  isFavorite: boolean;
+  image?: string;
+}

@@ -1,46 +1,32 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-
-export interface Allergy {
-  id: string;
-  name: string;
-  severity: 'mild' | 'moderate' | 'severe';
-  notes?: string;
-}
-
-export interface EmergencyContact {
-  id: string;
-  name: string;
-  relation: string;
-  phone: string;
-  email?: string;
-}
-
-export interface FoodItem {
-  id: string;
-  name: string;
-  expiryDate: string;
-  category: string;
-  quantity: number;
-  unit: string;
-}
-
-export interface UserProfile {
-  name: string;
-  dietaryPreferences: string[];
-  allergies: Allergy[];
-  emergencyContacts: EmergencyContact[];
-}
+import { 
+  Allergy, 
+  EmergencyContact, 
+  FamilyMember, 
+  FoodItem, 
+  Recipe, 
+  UserProfile 
+} from '../types';
 
 interface AppContextType {
   userProfile: UserProfile | null;
   isOnboarded: boolean;
   inventory: FoodItem[];
+  familyMembers: FamilyMember[];
+  recipes: Recipe[];
   updateUserProfile: (profile: Partial<UserProfile>) => void;
   addAllergy: (allergy: Allergy) => void;
   removeAllergy: (id: string) => void;
   addInventoryItem: (item: FoodItem) => void;
   removeInventoryItem: (id: string) => void;
+  addFamilyMember: (member: FamilyMember) => void;
+  updateFamilyMember: (id: string, updates: Partial<FamilyMember>) => void;
+  removeFamilyMember: (id: string) => void;
+  addRecipe: (recipe: Recipe) => void;
+  updateRecipe: (id: string, updates: Partial<Recipe>) => void;
+  removeRecipe: (id: string) => void;
+  toggleFavoriteRecipe: (id: string) => void;
 }
 
 const initialUserProfile: UserProfile = {
@@ -88,11 +74,52 @@ const initialInventory: FoodItem[] = [
   }
 ];
 
+const initialFamilyMembers: FamilyMember[] = [
+  {
+    id: "1",
+    name: "Emma Doe",
+    relation: "Daughter",
+    dietaryPreferences: ["Vegetarian"],
+    allergies: [
+      { id: "1", name: "Peanuts", severity: "severe", notes: "Anaphylactic reaction" }
+    ],
+    notes: "Likes fruits and vegetables"
+  }
+];
+
+const initialRecipes: Recipe[] = [
+  {
+    id: "1",
+    name: "Gluten-Free Pancakes",
+    description: "Delicious pancakes without gluten",
+    ingredients: [
+      "2 cups gluten-free flour",
+      "2 eggs",
+      "1 cup milk",
+      "1 tsp baking powder",
+      "2 tbsp sugar",
+      "1/4 tsp salt"
+    ],
+    instructions: [
+      "Mix dry ingredients in a bowl",
+      "Whisk eggs and milk in another bowl",
+      "Combine wet and dry ingredients",
+      "Cook on a hot griddle until bubbles form, then flip"
+    ],
+    allergens: ["Eggs", "Milk"],
+    preparationTime: 15,
+    servings: 4,
+    isFavorite: true
+  }
+];
+
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(initialUserProfile);
   const [inventory, setInventory] = useState<FoodItem[]>(initialInventory);
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(initialFamilyMembers);
+  const [recipes, setRecipes] = useState<Recipe[]>(initialRecipes);
   
   const updateUserProfile = (profile: Partial<UserProfile>) => {
     setUserProfile(prev => {
@@ -128,17 +155,68 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const removeInventoryItem = (id: string) => {
     setInventory(prev => prev.filter(item => item.id !== id));
   };
+
+  // Family member management
+  const addFamilyMember = (member: FamilyMember) => {
+    setFamilyMembers(prev => [...prev, member]);
+  };
+
+  const updateFamilyMember = (id: string, updates: Partial<FamilyMember>) => {
+    setFamilyMembers(prev => 
+      prev.map(member => 
+        member.id === id ? { ...member, ...updates } : member
+      )
+    );
+  };
+
+  const removeFamilyMember = (id: string) => {
+    setFamilyMembers(prev => prev.filter(member => member.id !== id));
+  };
+
+  // Recipe management
+  const addRecipe = (recipe: Recipe) => {
+    setRecipes(prev => [...prev, recipe]);
+  };
+
+  const updateRecipe = (id: string, updates: Partial<Recipe>) => {
+    setRecipes(prev => 
+      prev.map(recipe => 
+        recipe.id === id ? { ...recipe, ...updates } : recipe
+      )
+    );
+  };
+
+  const removeRecipe = (id: string) => {
+    setRecipes(prev => prev.filter(recipe => recipe.id !== id));
+  };
+
+  const toggleFavoriteRecipe = (id: string) => {
+    setRecipes(prev => 
+      prev.map(recipe => 
+        recipe.id === id ? { ...recipe, isFavorite: !recipe.isFavorite } : recipe
+      )
+    );
+  };
   
   return (
     <AppContext.Provider value={{
       userProfile,
       isOnboarded: !!userProfile,
       inventory,
+      familyMembers,
+      recipes,
       updateUserProfile,
       addAllergy,
       removeAllergy,
       addInventoryItem,
-      removeInventoryItem
+      removeInventoryItem,
+      addFamilyMember,
+      updateFamilyMember,
+      removeFamilyMember,
+      addRecipe,
+      updateRecipe,
+      removeRecipe,
+      toggleFavoriteRecipe
     }}>
       {children}
     </AppContext.Provider>

@@ -8,6 +8,8 @@ import InventoryPage from '../pages/InventoryPage';
 import ProfilePage from '../pages/ProfilePage';
 import EmergencyPage from '../pages/EmergencyPage';
 import ScanResultPage from '../pages/ScanResultPage';
+import FamilyProfilesPage from '../pages/FamilyProfilesPage';
+import RecipesPage from '../pages/RecipesPage';
 
 const AppRoutes = () => {
   return (
@@ -19,6 +21,8 @@ const AppRoutes = () => {
       <Route path="/inventory" element={<InventoryPage />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/emergency" element={<EmergencyPage />} />
+      <Route path="/family" element={<FamilyProfilesPage />} />
+      <Route path="/recipes" element={<RecipesPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
