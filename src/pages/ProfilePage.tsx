@@ -1,14 +1,14 @@
 
 import { useState } from 'react';
 import { User, Save, Edit, Plus, Trash } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import AppLayout from '@/components/layout/AppLayout';
-import { useAppContext } from '@/context/AppContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Allergy, EmergencyContact } from '@/types';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import AppLayout from '../components/layout/AppLayout';
+import { useAppContext } from '../context/AppContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Label } from '../components/ui/label';
+import { Allergy, EmergencyContact } from '../types';
 
 const ProfilePage = () => {
   const { userProfile, updateUserProfile, addAllergy, removeAllergy } = useAppContext();

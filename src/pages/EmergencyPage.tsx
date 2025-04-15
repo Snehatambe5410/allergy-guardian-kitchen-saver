@@ -1,9 +1,10 @@
+
 import { AlertTriangle, Phone, User, Clock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import AppLayout from '@/components/layout/AppLayout';
-import { useAppContext } from '@/context/AppContext';
-import { Allergy } from '@/types';
+import { Button } from '../components/ui/button';
+import { Card, CardContent } from '../components/ui/card';
+import AppLayout from '../components/layout/AppLayout';
+import { useAppContext } from '../context/AppContext';
+import { Allergy } from '../types';
 
 const EmergencyPage = () => {
   const { userProfile } = useAppContext();

@@ -1,12 +1,13 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAppContext } from '@/context/AppContext';
-import { Checkbox } from '@/components/ui/checkbox';
-import { cn } from '@/lib/utils';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { useAppContext } from '../context/AppContext';
+import { Checkbox } from '../components/ui/checkbox';
+import { cn } from '../lib/utils';
 import { useEffect } from 'react';
 import {
   Select,
@@ -14,7 +15,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "../components/ui/select"
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ const OnboardingPage = () => {
   // State variables
   const [name, setName] = useState('');
   const [dietaryPreferences, setDietaryPreferences] = useState<string[]>([]);
-  const [allergies, setAllergies] = useState([{ name: '', severity: 'mild' }]);
+  const [allergies, setAllergies] = useState([{ name: '', severity: 'mild' as 'mild' | 'moderate' | 'severe' }]);
   const [emergencyContacts, setEmergencyContacts] = useState([
     { name: '', relation: '', phone: '', email: '' },
   ]);
@@ -64,7 +65,7 @@ const OnboardingPage = () => {
 
   // Handlers for allergies
   const addAllergy = () => {
-    setAllergies([...allergies, { name: '', severity: 'mild' }]);
+    setAllergies([...allergies, { name: '', severity: 'mild' as 'mild' | 'moderate' | 'severe' }]);
   };
 
   const updateAllergy = (index: number, field: string, value: string) => {

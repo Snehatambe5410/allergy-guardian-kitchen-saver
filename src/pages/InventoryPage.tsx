@@ -1,15 +1,15 @@
 
 import { useState } from 'react';
 import { Package, Plus, Search, Trash } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import AppLayout from '@/components/layout/AppLayout';
-import { useAppContext } from '@/context/AppContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { FoodItem } from '@/types';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Card, CardContent } from '../components/ui/card';
+import AppLayout from '../components/layout/AppLayout';
+import { useAppContext } from '../context/AppContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Label } from '../components/ui/label';
+import { FoodItem } from '../types';
 
 const InventoryPage = () => {
   const { inventory, addInventoryItem, removeInventoryItem } = useAppContext();
@@ -112,15 +112,18 @@ const InventoryPage = () => {
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category} value={category}>
+              {categories.map((category, index) => (
+                <SelectItem key={`category-${index}`} value={category}>
                   {category === 'all' ? 'All Categories' : category}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
           
-          <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'name' | 'expiry')}>
+          <Select 
+            value={sortBy} 
+            onValueChange={(value: string) => setSortBy(value as 'name' | 'expiry')}
+          >
             <SelectTrigger className="w-32">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
