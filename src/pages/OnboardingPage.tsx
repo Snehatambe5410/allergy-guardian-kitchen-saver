@@ -1,22 +1,14 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { useAppContext } from '../context/AppContext';
-import { Checkbox } from '../components/ui/checkbox';
-import { cn } from '../lib/utils';
-import { useEffect } from 'react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../components/ui/select"
 import { Allergy } from '../types';
+import PersonalInfoSection from '../components/onboarding/PersonalInfoSection';
+import DietaryPreferencesSection from '../components/onboarding/DietaryPreferencesSection';
+import AllergiesSection from '../components/onboarding/AllergiesSection';
+import EmergencyContactsSection from '../components/onboarding/EmergencyContactsSection';
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
@@ -37,11 +29,7 @@ const OnboardingPage = () => {
     email: string;
   }>>([{ name: '', relation: '', phone: '', email: '' }]);
 
-  // New allergy form state
-  const [newAllergy, setNewAllergy] = useState({ name: '', severity: 'mild' as 'mild' | 'moderate' | 'severe' });
-
-  const [newContact, setNewContact] = useState({ name: '', relation: '', phone: '', email: '' });
-
+  // Load user profile data if available
   useEffect(() => {
     if (userProfile) {
       setName(userProfile.name || '');
@@ -65,16 +53,7 @@ const OnboardingPage = () => {
     }
   }, [userProfile]);
 
-  // Dietary preferences options
-  const dietaryOptions = [
-    'Vegetarian',
-    'Vegan',
-    'Gluten-Free',
-    'Dairy-Free',
-    'Nut-Free',
-  ];
-
-  // Handlers for adding/removing dietary preferences
+  // Handlers for dietary preferences
   const toggleDietaryPreference = (option: string) => {
     if (dietaryPreferences.includes(option)) {
       setDietaryPreferences(dietaryPreferences.filter((pref) => pref !== option));
@@ -176,133 +155,26 @@ const OnboardingPage = () => {
           </CardHeader>
           <CardContent className="px-5 py-6">
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="name">Your Name</Label>
-                <Input
-                  type="text"
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter your name"
-                />
-              </div>
-
-              <div>
-                <Label>Dietary Preferences</Label>
-                <div className="mt-2 space-y-1">
-                  {dietaryOptions.map((option) => (
-                    <div key={option} className="flex items-center">
-                      <Checkbox
-                        id={`dietary-${option}`}
-                        checked={dietaryPreferences.includes(option)}
-                        onCheckedChange={() => toggleDietaryPreference(option)}
-                      />
-                      <Label
-                        htmlFor={`dietary-${option}`}
-                        className="ml-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {option}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <Label>Allergies & Sensitivities</Label>
-                <div className="mt-2 space-y-2">
-                  {allergies.map((allergy, index) => (
-                    <div key={index} className="flex space-x-2">
-                      <Input
-                        type="text"
-                        placeholder="Allergy"
-                        value={allergy.name}
-                        onChange={(e) =>
-                          updateAllergy(index, 'name', e.target.value)
-                        }
-                      />
-                      <Select value={allergy.severity} onValueChange={(value) => updateAllergy(index, 'severity', value)}>
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Severity" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="mild">Mild</SelectItem>
-                          <SelectItem value="moderate">Moderate</SelectItem>
-                          <SelectItem value="severe">Severe</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => removeAllergy(index)}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                  <Button type="button" variant="secondary" onClick={addAllergy}>
-                    Add Allergy
-                  </Button>
-                </div>
-              </div>
-
-              <div>
-                <Label>Emergency Contacts</Label>
-                <div className="mt-2 space-y-2">
-                  {emergencyContacts.map((contact, index) => (
-                    <div key={index} className="space-y-1">
-                      <div className="flex space-x-2">
-                        <Input
-                          type="text"
-                          placeholder="Contact Name"
-                          value={contact.name}
-                          onChange={(e) =>
-                            updateContact(index, 'name', e.target.value)
-                          }
-                        />
-                        <Input
-                          type="text"
-                          placeholder="Relation"
-                          value={contact.relation}
-                          onChange={(e) =>
-                            updateContact(index, 'relation', e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="flex space-x-2">
-                        <Input
-                          type="tel"
-                          placeholder="Phone"
-                          value={contact.phone}
-                          onChange={(e) =>
-                            updateContact(index, 'phone', e.target.value)
-                          }
-                        />
-                        <Input
-                          type="email"
-                          placeholder="Email"
-                          value={contact.email}
-                          onChange={(e) =>
-                            updateContact(index, 'email', e.target.value)
-                          }
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => removeContact(index)}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                  <Button type="button" variant="secondary" onClick={addContact}>
-                    Add Contact
-                  </Button>
-                </div>
-              </div>
+              <PersonalInfoSection name={name} setName={setName} />
+              
+              <DietaryPreferencesSection 
+                dietaryPreferences={dietaryPreferences}
+                toggleDietaryPreference={toggleDietaryPreference}
+              />
+              
+              <AllergiesSection 
+                allergies={allergies}
+                updateAllergy={updateAllergy}
+                removeAllergy={removeAllergy}
+                addAllergy={addAllergy}
+              />
+              
+              <EmergencyContactsSection 
+                emergencyContacts={emergencyContacts}
+                updateContact={updateContact}
+                removeContact={removeContact}
+                addContact={addContact}
+              />
             </div>
           </CardContent>
           <div className="px-5 py-4">
