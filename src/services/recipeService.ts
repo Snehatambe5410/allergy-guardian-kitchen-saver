@@ -4,9 +4,21 @@ import { Recipe } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
 
 export const fetchUserRecipes = async (): Promise<Recipe[]> => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError) {
+    console.error("Error fetching authenticated user:", userError);
+    throw userError;
+  }
+  
+  if (!userData.user) {
+    return [];
+  }
+
   const { data, error } = await supabase
     .from("recipes")
     .select("*")
+    .eq("user_id", userData.user.id)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -29,12 +41,24 @@ export const fetchUserRecipes = async (): Promise<Recipe[]> => {
 };
 
 export const addRecipe = async (recipe: Omit<Recipe, "id">): Promise<Recipe> => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError) {
+    console.error("Error fetching authenticated user:", userError);
+    throw userError;
+  }
+  
+  if (!userData.user) {
+    throw new Error("User is not authenticated");
+  }
+
   const newId = uuidv4();
   
   const { data, error } = await supabase
     .from("recipes")
     .insert({
       id: newId,
+      user_id: userData.user.id,
       name: recipe.name,
       description: recipe.description,
       ingredients: recipe.ingredients,

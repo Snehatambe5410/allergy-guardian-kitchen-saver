@@ -4,9 +4,21 @@ import { FamilyMember, Allergy } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
 
 export const fetchFamilyMembers = async (): Promise<FamilyMember[]> => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError) {
+    console.error("Error fetching authenticated user:", userError);
+    throw userError;
+  }
+  
+  if (!userData.user) {
+    return [];
+  }
+
   const { data, error } = await supabase
     .from("family_members")
-    .select("*");
+    .select("*")
+    .eq("user_id", userData.user.id);
 
   if (error) {
     console.error("Error fetching family members:", error);
@@ -15,6 +27,11 @@ export const fetchFamilyMembers = async (): Promise<FamilyMember[]> => {
 
   // Get all family member allergies in one query for better performance
   const familyMemberIds = data.map(member => member.id);
+  
+  if (familyMemberIds.length === 0) {
+    return [];
+  }
+  
   const { data: allergiesData, error: allergiesError } = await supabase
     .from("family_member_allergies")
     .select("*")
@@ -50,12 +67,24 @@ export const fetchFamilyMembers = async (): Promise<FamilyMember[]> => {
 };
 
 export const addFamilyMember = async (member: Omit<FamilyMember, "id">): Promise<FamilyMember> => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError) {
+    console.error("Error fetching authenticated user:", userError);
+    throw userError;
+  }
+  
+  if (!userData.user) {
+    throw new Error("User is not authenticated");
+  }
+
   const newId = uuidv4();
   
   const { data, error } = await supabase
     .from("family_members")
     .insert({
       id: newId,
+      user_id: userData.user.id,
       name: member.name,
       relation: member.relation,
       dietary_preferences: member.dietaryPreferences,

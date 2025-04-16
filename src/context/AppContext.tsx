@@ -27,7 +27,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [inventory, setInventory] = useState(initialInventory);
   const [familyMembers, setFamilyMembers] = useState(initialFamilyMembers);
   const [recipes, setRecipes] = useState(initialRecipes);
-  const [loadingData, setLoadingData] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -42,7 +42,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const loadUserData = async () => {
       if (!user) return;
       
-      setLoadingData(true);
+      setIsLoading(true);
       try {
         // Load user profile
         const profile = await fetchUserProfile();
@@ -75,7 +75,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           variant: "destructive",
         });
       } finally {
-        setLoadingData(false);
+        setIsLoading(false);
       }
     };
 
@@ -89,7 +89,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       inventory,
       familyMembers,
       recipes,
-      loadingData,
+      loadingData: isLoading,
       ...userProfileActions,
       ...inventoryActions,
       ...familyActions,

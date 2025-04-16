@@ -4,9 +4,21 @@ import { FoodItem } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
 
 export const fetchUserInventory = async (): Promise<FoodItem[]> => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError) {
+    console.error("Error fetching authenticated user:", userError);
+    throw userError;
+  }
+  
+  if (!userData.user) {
+    return [];
+  }
+
   const { data, error } = await supabase
     .from("inventory")
     .select("*")
+    .eq("user_id", userData.user.id)
     .order("expiry_date", { ascending: true });
 
   if (error) {
@@ -25,12 +37,24 @@ export const fetchUserInventory = async (): Promise<FoodItem[]> => {
 };
 
 export const addInventoryItem = async (item: Omit<FoodItem, "id">): Promise<FoodItem> => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError) {
+    console.error("Error fetching authenticated user:", userError);
+    throw userError;
+  }
+  
+  if (!userData.user) {
+    throw new Error("User is not authenticated");
+  }
+
   const newId = uuidv4();
   
   const { data, error } = await supabase
     .from("inventory")
     .insert({
       id: newId,
+      user_id: userData.user.id,
       name: item.name,
       expiry_date: item.expiryDate,
       category: item.category,
