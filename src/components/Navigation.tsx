@@ -1,5 +1,5 @@
 
-import { Home, Camera, Package, User, AlertTriangle } from 'lucide-react';
+import { Home, Camera, Package, User, AlertTriangle, CookingPot } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
 
@@ -11,6 +11,7 @@ const Navigation = () => {
     { icon: Home, label: 'Home', path: '/' },
     { icon: Camera, label: 'Scan', path: '/scanner' },
     { icon: Package, label: 'Inventory', path: '/inventory' },
+    { icon: CookingPot, label: 'Recipes', path: '/recipes' },
     { icon: User, label: 'Profile', path: '/profile' },
   ];
 

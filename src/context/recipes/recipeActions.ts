@@ -28,10 +28,24 @@ export const createRecipeActions = (
     );
   };
 
+  // New function to search recipes by name or ingredients
+  const searchRecipes = (query: string) => {
+    return (recipes: Recipe[]) => {
+      if (!query.trim()) return recipes;
+      
+      const lowercaseQuery = query.toLowerCase();
+      return recipes.filter(recipe => 
+        recipe.name.toLowerCase().includes(lowercaseQuery) || 
+        recipe.ingredients.some(ing => ing.toLowerCase().includes(lowercaseQuery))
+      );
+    };
+  };
+
   return {
     addRecipe,
     updateRecipe,
     removeRecipe,
-    toggleFavoriteRecipe
+    toggleFavoriteRecipe,
+    searchRecipes
   };
 };
