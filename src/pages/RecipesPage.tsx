@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { CookingPot, Search, Plus, Edit, Trash2, Heart, Clock, Users } from 'lucide-react';
+import { CookingPot, Search, Plus, Edit, Trash2, Heart, Clock, Users, BookOpen } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
@@ -8,10 +8,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useToast } from '../hooks/use-toast';
 import AppLayout from '../components/layout/AppLayout';
 import { useAppContext } from '../context/AppContext';
 import { Recipe } from '../types';
+import SampleRecipesBrowser from '../components/recipes/SampleRecipesBrowser';
 
 const RecipesPage = () => {
   const { recipes, addRecipe, updateRecipe, removeRecipe, toggleFavoriteRecipe } = useAppContext();
@@ -21,6 +23,7 @@ const RecipesPage = () => {
   const [editingRecipeId, setEditingRecipeId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterFavorites, setFilterFavorites] = useState(false);
+  const [activeTab, setActiveTab] = useState("my-recipes");
   
   // Form state
   const [formData, setFormData] = useState<{
@@ -175,140 +178,165 @@ const RecipesPage = () => {
     setIsDialogOpen(false);
   };
   
-  return (
-    <AppLayout title="Recipes">
-      <div className="p-4 max-w-4xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-          <h1 className="text-2xl font-bold">Recipe Collection</h1>
-          <div className="flex gap-2 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search recipes..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <Button 
-              variant="outline" 
-              className={filterFavorites ? "bg-rose-100 text-rose-800 border-rose-200" : ""}
-              onClick={() => setFilterFavorites(!filterFavorites)}
-            >
-              <Heart className={`h-4 w-4 mr-1 ${filterFavorites ? "fill-rose-500" : ""}`} />
-              Favorites
-            </Button>
-            <Button onClick={handleAddRecipe}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Recipe
-            </Button>
+  const MyRecipesContent = () => (
+    <>
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+        <h1 className="text-2xl font-bold">Recipe Collection</h1>
+        <div className="flex gap-2 w-full md:w-auto">
+          <div className="relative flex-1 md:w-64">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search recipes..."
+              className="pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
+          <Button 
+            variant="outline" 
+            className={filterFavorites ? "bg-rose-100 text-rose-800 border-rose-200" : ""}
+            onClick={() => setFilterFavorites(!filterFavorites)}
+          >
+            <Heart className={`h-4 w-4 mr-1 ${filterFavorites ? "fill-rose-500" : ""}`} />
+            Favorites
+          </Button>
+          <Button onClick={handleAddRecipe}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Recipe
+          </Button>
         </div>
-        
-        {filteredRecipes.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-10">
-              <div className="rounded-full bg-muted p-3 mb-4">
-                <CookingPot className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-medium mb-2">
-                {searchQuery || filterFavorites ? "No matching recipes found" : "No recipes added yet"}
-              </h3>
-              <p className="text-muted-foreground text-center mb-4">
-                {searchQuery || filterFavorites 
-                  ? "Try adjusting your search or filters"
-                  : "Add recipes to build your collection"}
-              </p>
+      </div>
+      
+      {filteredRecipes.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-10">
+            <div className="rounded-full bg-muted p-3 mb-4">
+              <CookingPot className="h-6 w-6" />
+            </div>
+            <h3 className="text-lg font-medium mb-2">
+              {searchQuery || filterFavorites ? "No matching recipes found" : "No recipes added yet"}
+            </h3>
+            <p className="text-muted-foreground text-center mb-4">
+              {searchQuery || filterFavorites 
+                ? "Try adjusting your search or filters"
+                : "Add recipes to build your collection"}
+            </p>
+            <div className="flex gap-4">
               <Button onClick={handleAddRecipe}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Recipe
               </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredRecipes.map(recipe => (
-              <Card key={recipe.id} className="overflow-hidden">
-                <div className="relative">
-                  {recipe.image ? (
-                    <img 
-                      src={recipe.image} 
-                      alt={recipe.name} 
-                      className="w-full h-48 object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-32 bg-muted flex items-center justify-center">
-                      <CookingPot className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2 bg-black/20 hover:bg-black/40 rounded-full"
-                    onClick={() => handleFavoriteToggle(recipe.id)}
-                  >
-                    <Heart className={`h-5 w-5 text-white ${recipe.isFavorite ? "fill-white" : ""}`} />
-                  </Button>
-                </div>
+              <Button onClick={() => setActiveTab("sample-recipes")} variant="outline">
+                <BookOpen className="mr-2 h-4 w-4" />
+                Browse Sample Recipes
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredRecipes.map(recipe => (
+            <Card key={recipe.id} className="overflow-hidden">
+              <div className="relative">
+                {recipe.image ? (
+                  <img 
+                    src={recipe.image} 
+                    alt={recipe.name} 
+                    className="w-full h-48 object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-32 bg-muted flex items-center justify-center">
+                    <CookingPot className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 bg-black/20 hover:bg-black/40 rounded-full"
+                  onClick={() => handleFavoriteToggle(recipe.id)}
+                >
+                  <Heart className={`h-5 w-5 text-white ${recipe.isFavorite ? "fill-white" : ""}`} />
+                </Button>
+              </div>
+              
+              <CardHeader>
+                <CardTitle>{recipe.name}</CardTitle>
+                {recipe.description && (
+                  <CardDescription>{recipe.description}</CardDescription>
+                )}
                 
-                <CardHeader>
-                  <CardTitle>{recipe.name}</CardTitle>
-                  {recipe.description && (
-                    <CardDescription>{recipe.description}</CardDescription>
-                  )}
-                  
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Clock className="mr-1 h-4 w-4" />
-                      {recipe.preparationTime} min
-                    </div>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Users className="mr-1 h-4 w-4" />
-                      Serves {recipe.servings}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Clock className="mr-1 h-4 w-4" />
+                    {recipe.preparationTime} min
+                  </div>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Users className="mr-1 h-4 w-4" />
+                    Serves {recipe.servings}
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-3">
+                {recipe.allergens.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium mb-1">Contains:</h3>
+                    <div className="flex flex-wrap gap-1">
+                      {recipe.allergens.map((allergen, i) => (
+                        <Badge 
+                          key={i} 
+                          variant="secondary"
+                          className="bg-red-100 text-red-800 hover:bg-red-200"
+                        >
+                          {allergen}
+                        </Badge>
+                      ))}
                     </div>
                   </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-3">
-                  {recipe.allergens.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-medium mb-1">Contains:</h3>
-                      <div className="flex flex-wrap gap-1">
-                        {recipe.allergens.map((allergen, i) => (
-                          <Badge 
-                            key={i} 
-                            variant="secondary"
-                            className="bg-red-100 text-red-800 hover:bg-red-200"
-                          >
-                            {allergen}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-                
-                <CardFooter className="justify-between pt-1">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleEditRecipe(recipe)}
-                  >
-                    <Edit className="h-4 w-4 mr-1" /> Edit
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="text-red-500"
-                    onClick={() => handleDeleteRecipe(recipe.id)}
-                  >
-                    <Trash2 className="h-4 w-4 mr-1" /> Remove
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        )}
+                )}
+              </CardContent>
+              
+              <CardFooter className="justify-between pt-1">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleEditRecipe(recipe)}
+                >
+                  <Edit className="h-4 w-4 mr-1" /> Edit
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-red-500"
+                  onClick={() => handleDeleteRecipe(recipe.id)}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" /> Remove
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
+    </>
+  );
+  
+  return (
+    <AppLayout title="Recipes">
+      <div className="p-4 max-w-4xl mx-auto">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid grid-cols-2 w-full mb-6">
+            <TabsTrigger value="my-recipes">My Recipes</TabsTrigger>
+            <TabsTrigger value="sample-recipes">Sample Recipes</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="my-recipes" className="mt-0">
+            <MyRecipesContent />
+          </TabsContent>
+          
+          <TabsContent value="sample-recipes" className="mt-0">
+            <SampleRecipesBrowser />
+          </TabsContent>
+        </Tabs>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
