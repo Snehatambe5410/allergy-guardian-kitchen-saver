@@ -9,7 +9,236 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      allergies: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          notes: string | null
+          severity: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          severity: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          severity?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      emergency_contacts: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string
+          phone: string
+          relation: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone: string
+          relation: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string
+          relation?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      family_member_allergies: {
+        Row: {
+          created_at: string | null
+          family_member_id: string
+          id: string
+          name: string
+          notes: string | null
+          severity: string
+        }
+        Insert: {
+          created_at?: string | null
+          family_member_id: string
+          id?: string
+          name: string
+          notes?: string | null
+          severity: string
+        }
+        Update: {
+          created_at?: string | null
+          family_member_id?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_member_allergies_family_member_id_fkey"
+            columns: ["family_member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      family_members: {
+        Row: {
+          created_at: string | null
+          dietary_preferences: string[] | null
+          id: string
+          name: string
+          notes: string | null
+          relation: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          dietary_preferences?: string[] | null
+          id?: string
+          name: string
+          notes?: string | null
+          relation: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          dietary_preferences?: string[] | null
+          id?: string
+          name?: string
+          notes?: string | null
+          relation?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      inventory: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          expiry_date: string | null
+          id: string
+          name: string
+          quantity: number | null
+          unit: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          expiry_date?: string | null
+          id?: string
+          name: string
+          quantity?: number | null
+          unit?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          expiry_date?: string | null
+          id?: string
+          name?: string
+          quantity?: number | null
+          unit?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          email: string | null
+          id: string
+          name: string | null
+          phone_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          email?: string | null
+          id: string
+          name?: string | null
+          phone_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          email?: string | null
+          id?: string
+          name?: string | null
+          phone_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      recipes: {
+        Row: {
+          allergens: string[] | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          ingredients: string[] | null
+          instructions: string[] | null
+          is_favorite: boolean | null
+          name: string
+          preparation_time: number | null
+          servings: number | null
+          user_id: string
+        }
+        Insert: {
+          allergens?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          ingredients?: string[] | null
+          instructions?: string[] | null
+          is_favorite?: boolean | null
+          name: string
+          preparation_time?: number | null
+          servings?: number | null
+          user_id: string
+        }
+        Update: {
+          allergens?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          ingredients?: string[] | null
+          instructions?: string[] | null
+          is_favorite?: boolean | null
+          name?: string
+          preparation_time?: number | null
+          servings?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
