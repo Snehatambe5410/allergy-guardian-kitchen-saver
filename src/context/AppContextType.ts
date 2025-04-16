@@ -14,6 +14,7 @@ export interface AppContextType {
   inventory: FoodItem[];
   familyMembers: FamilyMember[];
   recipes: Recipe[];
+  loadingData: boolean;
   updateUserProfile: (profile: Partial<UserProfile>) => void;
   addAllergy: (allergy: Allergy) => void;
   removeAllergy: (id: string) => void;
