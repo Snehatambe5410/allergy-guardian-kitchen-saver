@@ -10,19 +10,68 @@ import EmergencyPage from '../pages/EmergencyPage';
 import ScanResultPage from '../pages/ScanResultPage';
 import FamilyProfilesPage from '../pages/FamilyProfilesPage';
 import RecipesPage from '../pages/RecipesPage';
+import AuthPage from '../pages/AuthPage';
+import ProtectedRoute from '../components/ProtectedRoute';
 
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/onboarding" element={<OnboardingPage />} />
-      <Route path="/scanner" element={<ScannerPage />} />
-      <Route path="/scan-result" element={<ScanResultPage />} />
-      <Route path="/inventory" element={<InventoryPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
-      <Route path="/emergency" element={<EmergencyPage />} />
-      <Route path="/family" element={<FamilyProfilesPage />} />
-      <Route path="/recipes" element={<RecipesPage />} />
+      <Route path="/auth" element={<AuthPage />} />
+      
+      <Route path="/" element={
+        <ProtectedRoute>
+          <HomePage />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/onboarding" element={
+        <ProtectedRoute>
+          <OnboardingPage />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/scanner" element={
+        <ProtectedRoute>
+          <ScannerPage />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/scan-result" element={
+        <ProtectedRoute>
+          <ScanResultPage />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/inventory" element={
+        <ProtectedRoute>
+          <InventoryPage />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/profile" element={
+        <ProtectedRoute>
+          <ProfilePage />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/emergency" element={
+        <ProtectedRoute>
+          <EmergencyPage />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/family" element={
+        <ProtectedRoute>
+          <FamilyProfilesPage />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/recipes" element={
+        <ProtectedRoute>
+          <RecipesPage />
+        </ProtectedRoute>
+      } />
+      
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
