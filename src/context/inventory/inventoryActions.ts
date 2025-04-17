@@ -2,16 +2,42 @@ import { FoodItem } from '../../types';
 import { 
   addInventoryItem as addInventoryItemToDatabase,
   updateInventoryItem,
-  deleteInventoryItem
+  deleteInventoryItem,
+  addMultipleInventoryItems
 } from '@/services/inventoryService';
 
 export const createInventoryActions = (
   setInventory: React.Dispatch<React.SetStateAction<FoodItem[]>>
 ) => {
-  const addInventoryItem = (item: FoodItem) => {
-    // If the item already has an ID, assume it came from the database
-    // Otherwise, we would add it to the database here
-    setInventory(prev => [...prev, item]);
+  const addInventoryItem = async (item: FoodItem) => {
+    try {
+      // If the item already has an ID, assume it came from the database
+      // Otherwise, add it to the database
+      const savedItem = item.id ? item : await addInventoryItemToDatabase(item);
+      
+      // Update local state
+      setInventory(prev => [...prev, savedItem]);
+      
+      return savedItem;
+    } catch (error) {
+      console.error("Error adding inventory item:", error);
+      throw error;
+    }
+  };
+  
+  const addInventoryItems = async (items: FoodItem[]) => {
+    try {
+      // Add multiple items to database
+      const savedItems = await addMultipleInventoryItems(items);
+      
+      // Update local state
+      setInventory(prev => [...prev, ...savedItems]);
+      
+      return savedItems;
+    } catch (error) {
+      console.error("Error adding multiple inventory items:", error);
+      throw error;
+    }
   };
   
   const removeInventoryItem = async (id: string) => {
@@ -44,6 +70,7 @@ export const createInventoryActions = (
 
   return {
     addInventoryItem,
+    addInventoryItems,
     removeInventoryItem,
     updateInventoryItem
   };

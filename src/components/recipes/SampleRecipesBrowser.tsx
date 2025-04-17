@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,38 +22,40 @@ const SampleRecipesBrowser = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
   // Extract unique meal categories based on what's in the data
-  const recipeCategories = Array.from(new Set(
-    sampleRecipes.map(recipe => {
-      // Simple categorization based on recipe names and descriptions
-      if (recipe.name.toLowerCase().includes('breakfast') || 
-          recipe.description?.toLowerCase().includes('breakfast') ||
-          recipe.name.includes('Toast') ||
-          recipe.name.includes('Smoothie')) {
-        return 'Breakfast';
-      } else if (recipe.name.toLowerCase().includes('soup') || 
-                recipe.description?.toLowerCase().includes('soup')) {
-        return 'Soups';
-      } else if (recipe.name.toLowerCase().includes('salad') || 
-                recipe.description?.toLowerCase().includes('salad')) {
-        return 'Salads';
-      } else if (recipe.allergens.includes('Fish') || 
-                recipe.name.toLowerCase().includes('fish') ||
-                recipe.name.toLowerCase().includes('salmon')) {
-        return 'Seafood';
-      } else if (recipe.name.toLowerCase().includes('chicken') || 
-                recipe.name.toLowerCase().includes('beef') || 
-                recipe.name.toLowerCase().includes('pork')) {
-        return 'Meat';
-      } else if (!recipe.allergens.includes('Milk') && 
-                !recipe.allergens.includes('Eggs') && 
-                !recipe.allergens.includes('Fish') &&
-                !recipe.allergens.includes('Meat')) {
-        return 'Vegetarian';
-      } else {
-        return 'Main Dishes';
-      }
-    })
-  ), []).sort()
+  const recipeCategories = Array.from(
+    new Set(
+      sampleRecipes.map(recipe => {
+        // Simple categorization based on recipe names and descriptions
+        if (recipe.name.toLowerCase().includes('breakfast') || 
+            recipe.description?.toLowerCase().includes('breakfast') ||
+            recipe.name.includes('Toast') ||
+            recipe.name.includes('Smoothie')) {
+          return 'Breakfast';
+        } else if (recipe.name.toLowerCase().includes('soup') || 
+                  recipe.description?.toLowerCase().includes('soup')) {
+          return 'Soups';
+        } else if (recipe.name.toLowerCase().includes('salad') || 
+                  recipe.description?.toLowerCase().includes('salad')) {
+          return 'Salads';
+        } else if (recipe.allergens.includes('Fish') || 
+                  recipe.name.toLowerCase().includes('fish') ||
+                  recipe.name.toLowerCase().includes('salmon')) {
+          return 'Seafood';
+        } else if (recipe.name.toLowerCase().includes('chicken') || 
+                  recipe.name.toLowerCase().includes('beef') || 
+                  recipe.name.toLowerCase().includes('pork')) {
+          return 'Meat';
+        } else if (!recipe.allergens.includes('Milk') && 
+                  !recipe.allergens.includes('Eggs') && 
+                  !recipe.allergens.includes('Fish') &&
+                  !recipe.allergens.includes('Meat')) {
+          return 'Vegetarian';
+        } else {
+          return 'Main Dishes';
+        }
+      })
+    )
+  ).sort();
 
   // Filter recipes based on search query and category
   const filteredRecipes = sampleRecipes.filter(recipe => {
@@ -187,7 +190,7 @@ const SampleRecipesBrowser = () => {
             <Utensils className="mr-1 h-4 w-4" />
             All Recipes
           </Button>
-          {recipeCategories.map(category => (
+          {recipeCategories.map((category: string) => (
             <Button
               key={category}
               variant={selectedCategory === category ? "default" : "outline"}

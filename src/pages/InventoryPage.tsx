@@ -1,5 +1,6 @@
+
 import { useState } from 'react';
-import { Package, Plus, Search, Trash } from 'lucide-react';
+import { Package, Plus, Search, Trash, FileInput } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent } from '../components/ui/card';
@@ -9,9 +10,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Label } from '../components/ui/label';
 import { FoodItem } from '../types';
+import BulkAddInventoryForm from '@/components/inventory/BulkAddInventoryForm';
+import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 const InventoryPage = () => {
-  const { inventory, addInventoryItem, removeInventoryItem } = useAppContext();
+  const { inventory, addInventoryItem, addInventoryItems, removeInventoryItem } = useAppContext();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'expiry'>('expiry');
   const [filterCategory, setFilterCategory] = useState<string>('all');
@@ -22,6 +27,8 @@ const InventoryPage = () => {
     quantity: 1,
     unit: 'pcs'
   });
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
+  const [singleAddOpen, setSingleAddOpen] = useState(false);
   
   // Get all unique categories
   const categories = ['all', ...Array.from(new Set(inventory.map(item => item.category)))];
@@ -43,26 +50,46 @@ const InventoryPage = () => {
   });
   
   // Add a new item
-  const handleAddItem = () => {
+  const handleAddItem = async () => {
     if (!newItem.name) return;
     
-    addInventoryItem({
-      id: Date.now().toString(),
-      name: newItem.name || '',
-      expiryDate: newItem.expiryDate || new Date().toISOString().split('T')[0],
-      category: newItem.category || 'Other',
-      quantity: newItem.quantity || 1,
-      unit: newItem.unit || 'pcs'
-    });
-    
-    // Reset form
-    setNewItem({
-      name: '',
-      expiryDate: new Date().toISOString().split('T')[0],
-      category: 'Other',
-      quantity: 1,
-      unit: 'pcs'
-    });
+    try {
+      await addInventoryItem({
+        id: Date.now().toString(),
+        name: newItem.name || '',
+        expiryDate: newItem.expiryDate || new Date().toISOString().split('T')[0],
+        category: newItem.category || 'Other',
+        quantity: newItem.quantity || 1,
+        unit: newItem.unit || 'pcs'
+      });
+      
+      // Reset form
+      setNewItem({
+        name: '',
+        expiryDate: new Date().toISOString().split('T')[0],
+        category: 'Other',
+        quantity: 1,
+        unit: 'pcs'
+      });
+      
+      setSingleAddOpen(false);
+      
+      toast({
+        title: "Item added",
+        description: `${newItem.name} has been added to your inventory.`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add item to inventory.",
+        variant: "destructive"
+      });
+      console.error("Error adding item:", error);
+    }
+  };
+
+  const handleBulkAdd = async (items: FoodItem[]) => {
+    await addInventoryItems(items);
   };
   
   // Format date for display
@@ -133,109 +160,124 @@ const InventoryPage = () => {
           </Select>
         </div>
         
-        {/* Add New Item Button */}
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="w-full bg-app-green-600 hover:bg-app-green-700">
-              <Plus size={18} className="mr-2" />
-              Add New Item
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add Item to Inventory</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label htmlFor="itemName">Item Name</Label>
-                <Input 
-                  id="itemName" 
-                  value={newItem.name || ''}
-                  onChange={(e) => setNewItem({...newItem, name: e.target.value})}
-                  placeholder="e.g., Milk, Apples"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select 
-                  value={newItem.category} 
-                  onValueChange={(value) => setNewItem({...newItem, category: value})}
-                >
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Dairy">Dairy</SelectItem>
-                    <SelectItem value="Meat">Meat</SelectItem>
-                    <SelectItem value="Fruit">Fruit</SelectItem>
-                    <SelectItem value="Vegetable">Vegetable</SelectItem>
-                    <SelectItem value="Bakery">Bakery</SelectItem>
-                    <SelectItem value="Snacks">Snacks</SelectItem>
-                    <SelectItem value="Condiments">Condiments</SelectItem>
-                    <SelectItem value="Beverages">Beverages</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="expiryDate">Expiry Date</Label>
-                <Input 
-                  id="expiryDate" 
-                  type="date"
-                  value={newItem.expiryDate || ''}
-                  onChange={(e) => setNewItem({...newItem, expiryDate: e.target.value})}
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
+        {/* Add New Item Options */}
+        <div className="flex gap-2">
+          <Dialog open={singleAddOpen} onOpenChange={setSingleAddOpen}>
+            <DialogTrigger asChild>
+              <Button className="flex-1 bg-app-green-600 hover:bg-app-green-700">
+                <Plus size={18} className="mr-2" />
+                Add Single Item
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Item to Inventory</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantity</Label>
+                  <Label htmlFor="itemName">Item Name</Label>
                   <Input 
-                    id="quantity" 
-                    type="number"
-                    min="1"
-                    value={newItem.quantity || 1}
-                    onChange={(e) => setNewItem({...newItem, quantity: parseInt(e.target.value)})}
+                    id="itemName" 
+                    value={newItem.name || ''}
+                    onChange={(e) => setNewItem({...newItem, name: e.target.value})}
+                    placeholder="e.g., Milk, Apples"
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="unit">Unit</Label>
+                  <Label htmlFor="category">Category</Label>
                   <Select 
-                    value={newItem.unit} 
-                    onValueChange={(value) => setNewItem({...newItem, unit: value})}
+                    value={newItem.category} 
+                    onValueChange={(value) => setNewItem({...newItem, category: value})}
                   >
-                    <SelectTrigger id="unit">
-                      <SelectValue placeholder="Select unit" />
+                    <SelectTrigger id="category">
+                      <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pcs">Pieces</SelectItem>
-                      <SelectItem value="lbs">Pounds</SelectItem>
-                      <SelectItem value="kg">Kilograms</SelectItem>
-                      <SelectItem value="oz">Ounces</SelectItem>
-                      <SelectItem value="carton">Carton</SelectItem>
-                      <SelectItem value="bottle">Bottle</SelectItem>
-                      <SelectItem value="can">Can</SelectItem>
-                      <SelectItem value="box">Box</SelectItem>
-                      <SelectItem value="bag">Bag</SelectItem>
+                      <SelectItem value="Dairy">Dairy</SelectItem>
+                      <SelectItem value="Meat">Meat</SelectItem>
+                      <SelectItem value="Fruit">Fruit</SelectItem>
+                      <SelectItem value="Vegetable">Vegetable</SelectItem>
+                      <SelectItem value="Bakery">Bakery</SelectItem>
+                      <SelectItem value="Snacks">Snacks</SelectItem>
+                      <SelectItem value="Condiments">Condiments</SelectItem>
+                      <SelectItem value="Beverages">Beverages</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="expiryDate">Expiry Date</Label>
+                  <Input 
+                    id="expiryDate" 
+                    type="date"
+                    value={newItem.expiryDate || ''}
+                    onChange={(e) => setNewItem({...newItem, expiryDate: e.target.value})}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="quantity">Quantity</Label>
+                    <Input 
+                      id="quantity" 
+                      type="number"
+                      min="1"
+                      value={newItem.quantity || 1}
+                      onChange={(e) => setNewItem({...newItem, quantity: parseInt(e.target.value)})}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="unit">Unit</Label>
+                    <Select 
+                      value={newItem.unit} 
+                      onValueChange={(value) => setNewItem({...newItem, unit: value})}
+                    >
+                      <SelectTrigger id="unit">
+                        <SelectValue placeholder="Select unit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pcs">Pieces</SelectItem>
+                        <SelectItem value="lbs">Pounds</SelectItem>
+                        <SelectItem value="kg">Kilograms</SelectItem>
+                        <SelectItem value="oz">Ounces</SelectItem>
+                        <SelectItem value="carton">Carton</SelectItem>
+                        <SelectItem value="bottle">Bottle</SelectItem>
+                        <SelectItem value="can">Can</SelectItem>
+                        <SelectItem value="box">Box</SelectItem>
+                        <SelectItem value="bag">Bag</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <Button 
+                  className="w-full mt-4 bg-app-green-600 hover:bg-app-green-700"
+                  onClick={handleAddItem}
+                  disabled={!newItem.name}
+                >
+                  <Plus size={18} className="mr-2" />
+                  Add to Inventory
+                </Button>
               </div>
-              
-              <Button 
-                className="w-full mt-4 bg-app-green-600 hover:bg-app-green-700"
-                onClick={handleAddItem}
-                disabled={!newItem.name}
-              >
-                <Plus size={18} className="mr-2" />
-                Add to Inventory
+            </DialogContent>
+          </Dialog>
+          
+          <Dialog open={bulkAddOpen} onOpenChange={setBulkAddOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="flex-1">
+                <FileInput size={18} className="mr-2" />
+                Bulk Add Items
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <BulkAddInventoryForm 
+              onAdd={handleBulkAdd}  
+              onClose={() => setBulkAddOpen(false)}
+            />
+          </Dialog>
+        </div>
         
         {/* Inventory Stats */}
         <div className="grid grid-cols-3 gap-3">

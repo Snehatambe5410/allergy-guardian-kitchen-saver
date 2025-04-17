@@ -18,7 +18,8 @@ export interface AppContextType {
   updateUserProfile: (profile: Partial<UserProfile>) => void;
   addAllergy: (allergy: Allergy) => void;
   removeAllergy: (id: string) => void;
-  addInventoryItem: (item: FoodItem) => void;
+  addInventoryItem: (item: FoodItem) => Promise<FoodItem>;
+  addInventoryItems: (items: FoodItem[]) => Promise<FoodItem[]>;
   removeInventoryItem: (id: string) => void;
   addFamilyMember: (member: FamilyMember) => void;
   updateFamilyMember: (id: string, updates: Partial<FamilyMember>) => void;
