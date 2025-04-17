@@ -194,6 +194,204 @@ export const sampleRecipes: SampleRecipe[] = [
       name: "Minimalist Baker",
       url: "https://minimalistbaker.com/berry-smoothie-bowl/"
     }
+  },
+  {
+    name: "Chicken Tikka Masala",
+    description: "A popular Indian dish featuring tender chicken in a rich, aromatic tomato-based sauce.",
+    ingredients: [
+      "1.5 lbs chicken breast, cut into 1-inch cubes",
+      "1 cup plain yogurt",
+      "2 tbsp lemon juice",
+      "2 tsp ground cumin",
+      "2 tsp ground coriander",
+      "2 tsp paprika",
+      "1 tsp turmeric",
+      "1 tsp ginger paste",
+      "2 tsp garlic paste",
+      "1 tsp garam masala",
+      "2 tbsp oil",
+      "1 large onion, finely chopped",
+      "2 tbsp butter",
+      "1 can (14 oz) tomato sauce",
+      "1 cup heavy cream",
+      "1/4 cup fresh cilantro, chopped",
+      "Salt to taste"
+    ],
+    instructions: [
+      "In a bowl, mix yogurt, lemon juice, cumin, coriander, paprika, turmeric, ginger paste, garlic paste, and 1/2 tsp garam masala.",
+      "Add chicken to the marinade, mix well, cover and refrigerate for at least 1 hour (preferably overnight).",
+      "Heat oil in a large pan over medium-high heat. Add marinated chicken and cook until browned, about 5-6 minutes. Remove and set aside.",
+      "In the same pan, add butter and onions. Sauté until onions are soft and translucent.",
+      "Add tomato sauce and simmer for 10-15 minutes until sauce thickens.",
+      "Reduce heat to low, add heavy cream and stir well. Return chicken to the pan.",
+      "Simmer for another 10 minutes until chicken is fully cooked and sauce is thick.",
+      "Stir in remaining garam masala and salt to taste.",
+      "Garnish with fresh cilantro before serving."
+    ],
+    allergens: ["Milk"],
+    preparationTime: 135,
+    servings: 4,
+    isFavorite: false,
+    image: "https://images.unsplash.com/photo-1565557623262-b51c2513a641",
+    source: {
+      name: "Café Delites",
+      url: "https://cafedelites.com/chicken-tikka-masala/"
+    }
+  },
+  {
+    name: "Avocado Toast with Poached Egg",
+    description: "A nutritious and trendy breakfast featuring creamy avocado and perfectly poached egg.",
+    ingredients: [
+      "2 slices of sourdough bread",
+      "1 ripe avocado",
+      "2 fresh eggs",
+      "1 tbsp white vinegar",
+      "2 tsp lemon juice",
+      "1/4 tsp red pepper flakes",
+      "Salt and pepper to taste",
+      "1 tbsp fresh chives, chopped",
+      "1 tsp extra virgin olive oil"
+    ],
+    instructions: [
+      "Toast the sourdough bread slices until golden and crispy.",
+      "Fill a medium pot with water, add vinegar, and bring to a gentle simmer.",
+      "Crack each egg into a small cup. Create a gentle whirlpool in the water and carefully slide each egg into the center.",
+      "Cook for 3 minutes for a runny yolk, then remove with a slotted spoon onto paper towels.",
+      "Meanwhile, mash the avocado with lemon juice, salt, and pepper in a bowl.",
+      "Spread the avocado mixture onto the toast slices.",
+      "Place a poached egg on each toast slice.",
+      "Sprinkle with red pepper flakes, freshly ground black pepper, and chopped chives.",
+      "Drizzle with olive oil and serve immediately."
+    ],
+    allergens: ["Wheat", "Eggs"],
+    preparationTime: 15,
+    servings: 2,
+    isFavorite: false,
+    image: "https://images.unsplash.com/photo-1525351484163-7529414344d8",
+    source: {
+      name: "Bon Appétit",
+      url: "https://www.bonappetit.com/recipe/avocado-toast"
+    }
+  },
+  {
+    name: "Black Bean Quinoa Bowl",
+    description: "A protein-packed vegetarian bowl with southwestern flavors.",
+    ingredients: [
+      "1 cup quinoa, rinsed",
+      "2 cups vegetable broth",
+      "1 can (15 oz) black beans, drained and rinsed",
+      "1 cup corn kernels (fresh or frozen)",
+      "1 red bell pepper, diced",
+      "1/2 red onion, finely diced",
+      "1 avocado, diced",
+      "1 jalapeño, seeded and minced (optional)",
+      "1/4 cup fresh cilantro, chopped",
+      "2 tbsp lime juice",
+      "2 tbsp olive oil",
+      "1 tsp ground cumin",
+      "1/2 tsp chili powder",
+      "Salt and pepper to taste"
+    ],
+    instructions: [
+      "Cook quinoa in vegetable broth according to package instructions. Let cool slightly.",
+      "In a large bowl, combine cooked quinoa, black beans, corn, bell pepper, red onion, and jalapeño if using.",
+      "In a small bowl, whisk together lime juice, olive oil, cumin, chili powder, salt, and pepper.",
+      "Pour dressing over quinoa mixture and toss to combine.",
+      "Gently fold in diced avocado and cilantro.",
+      "Serve warm or cold."
+    ],
+    allergens: [],
+    preparationTime: 25,
+    servings: 4,
+    isFavorite: false,
+    image: "https://images.unsplash.com/photo-1543339308-43e59d6b73a6",
+    source: {
+      name: "Cookie and Kate",
+      url: "https://cookieandkate.com/southwestern-quinoa-bowl-recipe/"
+    }
+  },
+  {
+    name: "Lemon Garlic Butter Salmon",
+    description: "Tender salmon fillets cooked in a rich lemon garlic butter sauce.",
+    ingredients: [
+      "4 salmon fillets (6 oz each)",
+      "4 tbsp unsalted butter",
+      "4 cloves garlic, minced",
+      "2 tbsp fresh lemon juice",
+      "1 tsp lemon zest",
+      "2 tbsp fresh parsley, chopped",
+      "1/2 tsp dried oregano",
+      "Salt and pepper to taste",
+      "Lemon slices for garnish"
+    ],
+    instructions: [
+      "Pat salmon fillets dry with paper towels and season with salt and pepper.",
+      "In a large skillet over medium-high heat, melt 2 tablespoons of butter.",
+      "Add salmon fillets skin-side down and cook for 5 minutes.",
+      "Flip salmon and cook for another 2 minutes, then remove to a plate.",
+      "In the same skillet, add remaining butter, garlic, lemon juice, and lemon zest.",
+      "Cook for 2 minutes until garlic is fragrant but not brown.",
+      "Stir in parsley and oregano.",
+      "Return salmon to the skillet, spoon sauce over fillets and cook for 1 more minute.",
+      "Garnish with lemon slices and additional parsley if desired.",
+      "Serve immediately."
+    ],
+    allergens: ["Fish", "Milk"],
+    preparationTime: 20,
+    servings: 4,
+    isFavorite: false,
+    image: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2",
+    source: {
+      name: "Epicurious",
+      url: "https://www.epicurious.com/recipes/food/views/salmon-with-lemon-butter-sauce"
+    }
+  },
+  {
+    name: "Classic Beef Lasagna",
+    description: "A hearty Italian casserole with layers of pasta, rich meat sauce, and cheeses.",
+    ingredients: [
+      "12 lasagna noodles",
+      "1 lb ground beef",
+      "1 onion, finely chopped",
+      "3 cloves garlic, minced",
+      "2 cans (15 oz each) tomato sauce",
+      "1 can (6 oz) tomato paste",
+      "2 tsp dried basil",
+      "2 tsp dried oregano",
+      "1 tsp salt",
+      "1/2 tsp black pepper",
+      "15 oz ricotta cheese",
+      "1 egg, beaten",
+      "1/4 cup fresh parsley, chopped",
+      "3 cups shredded mozzarella cheese",
+      "1 cup grated Parmesan cheese",
+      "2 tbsp olive oil"
+    ],
+    instructions: [
+      "Preheat oven to 375°F (190°C).",
+      "Cook lasagna noodles according to package directions; drain and set aside.",
+      "In a large skillet, heat olive oil over medium heat. Add onion and cook until soft.",
+      "Add garlic and cook for 30 seconds until fragrant.",
+      "Add ground beef and cook until browned. Drain excess fat.",
+      "Stir in tomato sauce, tomato paste, basil, oregano, salt, and pepper.",
+      "Simmer for 20 minutes, stirring occasionally.",
+      "In a bowl, combine ricotta cheese, egg, and parsley.",
+      "In a 9x13 inch baking dish, spread 1/2 cup of meat sauce.",
+      "Layer 3 noodles, 1/3 of the ricotta mixture, 1/3 of the mozzarella, and 1/4 of the parmesan.",
+      "Repeat layers twice, ending with noodles, remaining meat sauce, and remaining cheeses.",
+      "Cover with foil and bake for 25 minutes.",
+      "Remove foil and bake for another 25 minutes until cheese is golden and bubbly.",
+      "Let stand for 15 minutes before serving."
+    ],
+    allergens: ["Wheat", "Eggs", "Milk"],
+    preparationTime: 90,
+    servings: 8,
+    isFavorite: false,
+    image: "https://images.unsplash.com/photo-1619895092538-128341789043",
+    source: {
+      name: "Allrecipes",
+      url: "https://www.allrecipes.com/recipe/23600/worlds-best-lasagna/"
+    }
   }
 ];
 
