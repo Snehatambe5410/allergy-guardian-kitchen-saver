@@ -22,7 +22,7 @@ const ScannerPage = () => {
     setTimeout(() => {
       setIsScanning(false);
       // Pass a mock barcode result
-      navigateToScanResult('073000')]3']6');
+      navigateToScanResult('073000136365');
     }, 2000);
   };
   
