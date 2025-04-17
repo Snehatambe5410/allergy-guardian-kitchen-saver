@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +52,7 @@ const SampleRecipesBrowser = () => {
         return 'Main Dishes';
       }
     })
-  ).sort();
+  ).sort()
 
   // Filter recipes based on search query and category
   const filteredRecipes = sampleRecipes.filter(recipe => {
