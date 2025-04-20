@@ -219,64 +219,57 @@ export const suggestRecipes = (
   recipes: Recipe[] = [],
   profile: UserProfile | FamilyMember | null = null
 ): Recipe[] => {
-  if (recipes.length === 0) {
-    return [];
-  }
-  
-  // Filter for safe recipes based on allergies
-  const safeRecipes = profile 
-    ? recipes.filter(recipe => {
-        // Check if any recipe allergen matches profile allergies
-        if (profile.allergies.length === 0) return true;
-        
-        for (const allergen of recipe.allergens) {
-          for (const allergy of profile.allergies) {
-            if (allergen.toLowerCase() === allergy.name.toLowerCase()) {
-              return false;
-            }
-          }
-        }
-        return true;
-      })
-    : [...recipes];
-  
-  // If we have inventory, prioritize recipes that use available ingredients
-  if (inventory.length > 0) {
-    // Get all ingredient names from inventory
-    const availableIngredients = inventory.map(item => 
-      item.name.toLowerCase());
-    
-    // Score recipes based on how many ingredients are available
-    const scoredRecipes = safeRecipes.map(recipe => {
-      // Count how many recipe ingredients are in inventory
-      let matchCount = 0;
-      for (const ingredient of recipe.ingredients) {
-        if (availableIngredients.some(avail => 
-            ingredient.toLowerCase().includes(avail))) {
-          matchCount++;
-        }
-      }
-      
-      // Calculate a match percentage
-      const matchPercentage = recipe.ingredients.length > 0 
-        ? (matchCount / recipe.ingredients.length) * 100 
-        : 0;
-        
-      return {
-        recipe,
-        matchPercentage
-      };
-    });
-    
-    // Sort by match percentage (highest first)
-    scoredRecipes.sort((a, b) => b.matchPercentage - a.matchPercentage);
-    
-    // Return recipes, sorted by best match
-    return scoredRecipes.map(item => item.recipe);
-  }
-  
-  // If no inventory or if all recipes have been filtered out
-  return safeRecipes;
+  if (!profile) return [];
+
+  const suggestions: Recipe[] = [];
+  const userAllergies = profile.allergies.map(a => a.name.toLowerCase());
+  const userPreferences = profile.dietaryPreferences.map(p => p.toLowerCase());
+
+  // Filter safe recipes (no allergens)
+  const safeRecipes = recipes.filter(recipe => {
+    const recipeAllergens = recipe.allergens.map(a => a.toLowerCase());
+    return !recipeAllergens.some(allergen => userAllergies.includes(allergen));
+  });
+
+  // Score recipes based on:
+  // 1. Available ingredients
+  // 2. Dietary preferences
+  // 3. Cuisine type (if user has favorite cuisines)
+  const scoredRecipes = safeRecipes.map(recipe => {
+    let score = 0;
+
+    // Check available ingredients
+    const availableIngredients = inventory.map(item => item.name.toLowerCase());
+    const recipeIngredients = recipe.ingredients.map(ing => ing.toLowerCase());
+    const matchingIngredients = recipeIngredients.filter(ing => 
+      availableIngredients.some(available => ing.includes(available))
+    );
+    score += (matchingIngredients.length / recipeIngredients.length) * 5;
+
+    // Check dietary preferences
+    if (userPreferences.some(pref => 
+      recipe.name.toLowerCase().includes(pref) || 
+      recipe.description?.toLowerCase().includes(pref)
+    )) {
+      score += 3;
+    }
+
+    // Check favorite cuisines
+    if (profile.favoriteCuisines?.some(cuisine => 
+      recipe.name.toLowerCase().includes(cuisine.toLowerCase()) ||
+      recipe.description?.toLowerCase().includes(cuisine.toLowerCase())
+    )) {
+      score += 2;
+    }
+
+    return { recipe, score };
+  });
+
+  // Sort by score and return top recipes
+  return scoredRecipes
+    .sort((a, b) => b.score - a.score)
+    .map(item => item.recipe)
+    .slice(0, 10);
 };
 
 /**
