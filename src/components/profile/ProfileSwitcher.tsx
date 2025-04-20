@@ -23,7 +23,7 @@ export const ProfileSwitcher = () => {
   
   // Combine user profile and family members
   const allProfiles = [
-    ...(userProfile ? [{ ...userProfile, id: 'primary' }] : []),
+    ...(userProfile ? [{ ...userProfile, id: userProfile.id || 'primary' }] : []),
     ...familyMembers
   ];
   

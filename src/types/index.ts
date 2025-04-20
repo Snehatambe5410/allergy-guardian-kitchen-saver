@@ -37,6 +37,7 @@ export interface NutritionInfo {
 }
 
 export interface UserProfile {
+  id?: string; // Added optional id field
   name: string;
   dietaryPreferences: string[];
   allergies: Allergy[];
