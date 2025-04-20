@@ -86,9 +86,15 @@ export const createFamilyActions = (
   // Export a family profile as a JSON string
   const exportFamilyProfile = async (id: string): Promise<string> => {
     try {
-      // Find the member in the current state
-      const members = await Promise.resolve(setFamilyMembers(prev => prev));
-      const member = members.find(m => m.id === id);
+      // Get current family members array
+      let currentMembers: FamilyMember[] = [];
+      setFamilyMembers(prev => {
+        currentMembers = [...prev];
+        return prev;
+      });
+      
+      // Find the member in the state
+      const member = currentMembers.find(m => m.id === id);
       
       if (!member) {
         throw new Error("Family member not found");

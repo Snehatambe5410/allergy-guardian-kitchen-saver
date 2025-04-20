@@ -1,7 +1,7 @@
 
 import { useNavigate } from 'react-router-dom';
-import { Camera, Package, Shield, Bell, AlertTriangle, CookingPot, ChefHat, Clock } from 'lucide-react';
-import AppLayout from '../components/layout/AppLayout';
+import { Camera, Shield, Bell, AlertTriangle, CookingPot, ChefHat, Clock, Package } from 'lucide-react';
+import MobileAppLayout from '../components/layout/MobileAppLayout';
 import { useAppContext } from '../context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -10,7 +10,15 @@ import { Badge } from '../components/ui/badge';
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { userProfile, isOnboarded, inventory, recipes } = useAppContext();
+  const { 
+    userProfile, 
+    isOnboarded, 
+    inventory, 
+    recipes, 
+    activeProfile,
+    checkIngredientSafety,
+    suggestRecipes
+  } = useAppContext();
 
   // Redirect to onboarding if not onboarded (in a real app)
   useEffect(() => {
@@ -32,39 +40,27 @@ const HomePage = () => {
   // Get favorite recipes
   const favoriteRecipes = recipes.filter(recipe => recipe.isFavorite);
   
-  // Simple recommendation algorithm based on user's dietary preferences
-  const recommendedRecipes = recipes.filter(recipe => {
-    // Don't recommend recipes that contain allergens the user is allergic to
-    const userAllergens = userProfile?.allergies.map(allergy => allergy.name.toLowerCase()) || [];
-    const recipeAllergens = recipe.allergens.map(allergen => allergen.toLowerCase());
-    const hasAllergen = recipeAllergens.some(allergen => userAllergens.includes(allergen));
-    
-    if (hasAllergen) return false;
-    
-    // Recommend recipes that match dietary preferences
-    const userPreferences = userProfile?.dietaryPreferences.map(pref => pref.toLowerCase()) || [];
-    
-    // For now, just return recipes that don't contain allergens
-    // In a real app, this would be more sophisticated
-    return true;
-  }).slice(0, 2); // Limit to 2 recommendations
+  // Get recommended recipes using our smart function
+  const recommendedRecipes = suggestRecipes();
 
   return (
-    <AppLayout title="Allergy Guard & Kitchen Saver">
+    <MobileAppLayout title="Allergy Guard" showProfileSwitcher={true}>
       <div className="p-4 space-y-6 animate-fade-in">
-        {/* Welcome Section - now with gradient background */}
-        <section className="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-xl p-6">
-          <h2 className="text-2xl font-bold mb-2">
-            Hello, {userProfile?.name || 'Friend'}!
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300">
-            Stay safe and reduce waste with your personal food assistant.
-          </p>
+        {/* Welcome Section with active profile */}
+        <section className="bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-900/30 dark:to-blue-900/30 rounded-xl p-6 relative overflow-hidden">
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+          <div className="relative z-10">
+            <h2 className="text-xl font-bold mb-1">
+              Hello, {activeProfile?.name || userProfile?.name || 'Friend'}!
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 text-sm">
+              Stay safe and reduce waste with your personal food assistant.
+            </p>
+          </div>
         </section>
 
         {/* Quick Actions - now with colorful buttons */}
         <section>
-          <h3 className="text-lg font-semibold mb-3">Quick Actions</h3>
           <div className="grid grid-cols-2 gap-4">
             <Button 
               onClick={() => navigate('/scanner')}
@@ -86,7 +82,7 @@ const HomePage = () => {
           </div>
         </section>
 
-        {/* New Recipe Section */}
+        {/* Recipe Section */}
         <section>
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-lg font-semibold">Your Recipes</h3>
@@ -134,74 +130,26 @@ const HomePage = () => {
           </Card>
         </section>
 
-        {/* Recommended Recipes Section */}
-        <section className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/30 dark:to-orange-900/30 p-4 rounded-xl">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg font-semibold">Recommended for You</h3>
-            <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
-              Smart Suggestions
-            </Badge>
-          </div>
-          
-          {recommendedRecipes.length > 0 ? (
-            <div className="grid grid-cols-1 gap-3">
-              {recommendedRecipes.map((recipe) => (
-                <div 
-                  key={recipe.id} 
-                  className="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => navigate('/recipes')}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-medium">{recipe.name}</h4>
-                      <p className="text-sm text-gray-500 line-clamp-1">
-                        {recipe.description || `${recipe.ingredients.length} ingredients`}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1 bg-green-100 dark:bg-green-800/40 text-green-800 dark:text-green-300 text-xs px-2 py-1 rounded-full">
-                      <Clock size={12} />
-                      <span>{recipe.preparationTime} min</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <Card className="bg-white/80 dark:bg-gray-800/80">
-              <CardContent className="pt-6 text-center">
-                <p className="text-gray-500">
-                  No recommendations yet. Add more recipes to get started!
-                </p>
-                <Button 
-                  onClick={() => navigate('/recipes')}
-                  variant="ghost" 
-                  className="mt-2"
-                >
-                  Browse Recipes
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </section>
-
-        {/* Allergy Guard - now with interactive hover styling */}
+        {/* Allergy Guard */}
         <section>
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-lg font-semibold">Allergy Guard</h3>
-            <Shield className="text-app-green-600" size={20} />
+            <Shield className="text-green-600" size={20} />
           </div>
           <Card className="border-l-4 border-green-400 hover:shadow-lg transition-shadow">
             <CardHeader className="pb-2">
-              <CardTitle className="text-md">Your Allergens</CardTitle>
+              <CardTitle className="text-md">
+                {activeProfile?.name || userProfile?.name || 'Your'} Allergens
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                {userProfile?.allergies.map((allergy) => (
+                {activeProfile?.allergies?.map((allergy) => (
                   <span 
                     key={allergy.id}
                     className={`px-3 py-1 text-sm rounded-full transform hover:scale-105 transition-transform cursor-pointer ${
                       allergy.severity === 'severe' 
-                        ? 'bg-app-red-100 text-app-red-800' 
+                        ? 'bg-red-100 text-red-800' 
                         : allergy.severity === 'moderate'
                         ? 'bg-orange-100 text-orange-800'
                         : 'bg-yellow-100 text-yellow-800'
@@ -211,7 +159,7 @@ const HomePage = () => {
                     {allergy.name}
                   </span>
                 ))}
-                {(!userProfile?.allergies || userProfile.allergies.length === 0) && (
+                {(!activeProfile?.allergies || activeProfile?.allergies.length === 0) && (
                   <span className="text-gray-500">No allergies added yet</span>
                 )}
               </div>
@@ -219,11 +167,11 @@ const HomePage = () => {
           </Card>
         </section>
 
-        {/* Kitchen Saver - now with better styling */}
+        {/* Kitchen Saver */}
         <section>
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-lg font-semibold">Kitchen Saver</h3>
-            <Package className="text-app-blue-600" size={20} />
+            <Package className="text-blue-600" size={20} />
           </div>
           <Card className="border-l-4 border-blue-400 hover:shadow-lg transition-shadow">
             <CardHeader className="pb-2">
@@ -232,29 +180,43 @@ const HomePage = () => {
             <CardContent>
               {expiringItems.length > 0 ? (
                 <ul className="space-y-2">
-                  {expiringItems.map((item) => {
+                  {expiringItems.slice(0, 3).map((item) => {
                     // Calculate days until expiry
                     const daysUntilExpiry = Math.ceil((new Date(item.expiryDate).getTime() - today.getTime()) / (1000 * 3600 * 24));
+                    
+                    // Check if the item is safe for current profile
+                    const safetyCheck = item.allergens 
+                      ? item.allergens.some(allergen => 
+                          activeProfile?.allergies.some(a => 
+                            a.name.toLowerCase() === allergen.toLowerCase()
+                          )
+                        )
+                      : false;
                     
                     return (
                       <li 
                         key={item.id} 
-                        className={`flex justify-between p-2 rounded-lg ${
+                        className={`flex justify-between p-2 rounded-lg cursor-pointer ${
                           daysUntilExpiry <= 2 
                             ? 'bg-red-50 dark:bg-red-900/20'
                             : 'bg-yellow-50 dark:bg-yellow-900/20'
-                        } hover:bg-opacity-80 transition-colors cursor-pointer`}
+                        } hover:bg-opacity-80 transition-colors relative`}
                         onClick={() => navigate('/inventory')}
                       >
-                        <span className="font-medium">{item.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{item.name}</span>
+                          {safetyCheck && (
+                            <Badge variant="destructive" className="text-xs">Allergen</Badge>
+                          )}
+                        </div>
                         <span className={`text-sm ${
                           daysUntilExpiry <= 2 ? 'text-red-600' : 'text-orange-600'
                         }`}>
                           {daysUntilExpiry === 0 
-                            ? "Expires today!" 
+                            ? "Today!" 
                             : daysUntilExpiry === 1 
-                            ? "Expires tomorrow" 
-                            : `${daysUntilExpiry} days left`
+                            ? "Tomorrow" 
+                            : `${daysUntilExpiry} days`
                           }
                         </span>
                       </li>
@@ -276,23 +238,8 @@ const HomePage = () => {
             </CardContent>
           </Card>
         </section>
-
-        {/* Notifications - now with interactive elements */}
-        <section>
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg font-semibold">Recent Alerts</h3>
-            <Bell className="text-app-blue-600" size={20} />
-          </div>
-          <Card className="border-l-4 border-purple-400 hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <div className="text-center py-2 text-gray-500">
-                No recent alerts
-              </div>
-            </CardContent>
-          </Card>
-        </section>
       </div>
-    </AppLayout>
+    </MobileAppLayout>
   );
 };
 

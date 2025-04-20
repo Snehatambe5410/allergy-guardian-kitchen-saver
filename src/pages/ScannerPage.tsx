@@ -1,19 +1,28 @@
 
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, RotateCw, X, Upload, CheckCircle2 } from 'lucide-react';
+import { Camera, RotateCw, X, Upload, CheckCircle2, Search, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import AppLayout from '../components/layout/AppLayout';
+import MobileAppLayout from '../components/layout/MobileAppLayout';
 import { Input } from '../components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { useAppContext } from '@/context/AppContext';
+import { AllergenResults } from '@/components/allergen/AllergenResults';
 
 const ScannerPage = () => {
   const navigate = useNavigate();
   const [isScanning, setIsScanning] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [manualIngredient, setManualIngredient] = useState('');
+  const [isChecking, setIsChecking] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { checkIngredientSafety, activeProfile } = useAppContext();
+  const [scanResult, setScanResult] = useState<{
+    ingredient: string;
+    result: ReturnType<typeof checkIngredientSafety>;
+  } | null>(null);
   
   const handleStartScan = () => {
     setIsScanning(true);
@@ -21,8 +30,26 @@ const ScannerPage = () => {
     // In a real app, this would use a barcode scanning library
     setTimeout(() => {
       setIsScanning(false);
-      // Pass a mock barcode result
-      navigateToScanResult('073000136365');
+      // Example: Detect "peanut butter" from barcode
+      const mockIngredient = "peanut butter";
+      const result = checkIngredientSafety(mockIngredient);
+      setScanResult({
+        ingredient: mockIngredient,
+        result
+      });
+      
+      if (!result.safe) {
+        toast({
+          title: "Allergen Detected!",
+          description: `${mockIngredient} contains allergens for ${activeProfile?.name || 'current profile'}.`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Safe Ingredient",
+          description: `${mockIngredient} is safe for ${activeProfile?.name || 'current profile'}.`,
+        });
+      }
     }, 2000);
   };
   
@@ -57,14 +84,49 @@ const ScannerPage = () => {
     // Simulate processing the barcode from the image
     setTimeout(() => {
       setIsUploading(false);
-      // Navigate to scan result with a mock barcode
-      navigateToScanResult('022000124210');
+      // Example: Detect "milk" from image
+      const mockIngredient = "milk";
+      const result = checkIngredientSafety(mockIngredient);
+      setScanResult({
+        ingredient: mockIngredient,
+        result
+      });
+      
+      if (!result.safe) {
+        toast({
+          title: "Allergen Detected!",
+          description: `${mockIngredient} contains allergens for ${activeProfile?.name || 'current profile'}.`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Safe Ingredient",
+          description: `${mockIngredient} is safe for ${activeProfile?.name || 'current profile'}.`,
+        });
+      }
     }, 2000);
   };
 
-  const navigateToScanResult = (barcode: string) => {
-    // Pass the barcode to the scan result page
-    navigate(`/scan-result?barcode=${barcode}`);
+  const handleManualCheck = () => {
+    if (!manualIngredient.trim()) {
+      toast({
+        title: "Empty Input",
+        description: "Please enter an ingredient name.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsChecking(true);
+    setTimeout(() => {
+      const result = checkIngredientSafety(manualIngredient);
+      setScanResult({
+        ingredient: manualIngredient,
+        result
+      });
+      setIsChecking(false);
+      setManualIngredient('');
+    }, 800);
   };
 
   const triggerFileUpload = () => {
@@ -72,8 +134,8 @@ const ScannerPage = () => {
   };
 
   return (
-    <AppLayout title="Scan Food Item">
-      <div className="p-4 flex flex-col items-center justify-center h-full">
+    <MobileAppLayout title="Allergen Scanner">
+      <div className="p-4 flex flex-col items-center justify-start">
         <div className="aspect-square w-full max-w-md bg-black relative rounded-xl overflow-hidden mb-6">
           {uploadedImage ? (
             // Show uploaded image
@@ -85,9 +147,9 @@ const ScannerPage = () => {
               />
               {isUploading && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <div className="w-32 h-32 border-4 border-app-green-500 rounded-lg animate-pulse" />
+                  <div className="w-32 h-32 border-4 border-green-500 rounded-lg animate-pulse" />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="h-1 w-full bg-app-green-500 animate-scan opacity-50" />
+                    <div className="h-1 w-full bg-green-500 animate-scan opacity-50" />
                   </div>
                 </div>
               )}
@@ -95,9 +157,9 @@ const ScannerPage = () => {
           ) : isScanning ? (
             // Show scanning animation
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-32 h-32 border-4 border-app-green-500 rounded-lg animate-pulse" />
+              <div className="w-32 h-32 border-4 border-green-500 rounded-lg animate-pulse" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="h-1 w-full bg-app-green-500 animate-scan opacity-50" />
+                <div className="h-1 w-full bg-green-500 animate-scan opacity-50" />
               </div>
             </div>
           ) : (
@@ -108,6 +170,50 @@ const ScannerPage = () => {
             </div>
           )}
         </div>
+        
+        {/* Manual ingredient check */}
+        <div className="w-full max-w-md mb-6">
+          <div className="flex items-center gap-2">
+            <Input
+              value={manualIngredient}
+              onChange={(e) => setManualIngredient(e.target.value)}
+              placeholder="Enter ingredient name..."
+              className="flex-1"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleManualCheck();
+                }
+              }}
+            />
+            <Button 
+              onClick={handleManualCheck}
+              disabled={isChecking}
+              className="min-w-[90px]"
+            >
+              {isChecking ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Checking
+                </>
+              ) : (
+                <>
+                  <Search className="mr-2 h-4 w-4" />
+                  Check
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+        
+        {scanResult && (
+          <div className="w-full max-w-md mb-6">
+            <h3 className="text-lg font-medium mb-2">Scan Result</h3>
+            <AllergenResults 
+              ingredient={scanResult.ingredient}
+              result={scanResult.result}
+            />
+          </div>
+        )}
         
         {isScanning || isUploading ? (
           <div className="space-y-4 w-full max-w-md">
@@ -129,7 +235,7 @@ const ScannerPage = () => {
             <Button 
               onClick={handleStartScan}
               size="lg"
-              className="w-full bg-app-green-600 hover:bg-app-green-700"
+              className="w-full bg-green-600 hover:bg-green-700"
             >
               <Camera className="mr-2" size={18} />
               Scan Barcode
@@ -161,12 +267,12 @@ const ScannerPage = () => {
               onClick={() => navigate('/inventory')}
             >
               <RotateCw className="mr-2" size={18} />
-              Enter Manually
+              Go To Inventory
             </Button>
           </div>
         )}
       </div>
-    </AppLayout>
+    </MobileAppLayout>
   );
 };
 

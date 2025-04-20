@@ -7,84 +7,118 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
- 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
  
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
  
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
- 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
- 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 142.1 76.2% 36.3%;
+    --primary-foreground: 355.7 100% 97.3%;
  
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
+ 
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
  
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
  
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
- 
-    --ring: 215 20.2% 65.1%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 142.1 76.2% 36.3%;
  
     --radius: 0.5rem;
     
     /* App colors */
-    --app-blue-300: #63B3ED;
-    --app-blue-400: #4299E1;
-    --app-blue-500: #3182CE;
-    --app-blue-600: #2B6CB0;
-    --app-blue-700: #2C5282;
+    --app-green-50: 141 84% 94%;
+    --app-green-100: 141 84% 89%;
+    --app-green-200: 140 84% 81%;
+    --app-green-300: 141 73% 73%;
+    --app-green-400: 141 72% 65%;
+    --app-green-500: 142 70% 49%;
+    --app-green-600: 142 76% 36%;
+    --app-green-700: 142 76% 29%;
+    --app-green-800: 143 75% 24%;
+    --app-green-900: 144 75% 20%;
+    --app-green-950: 145 86% 10%;
     
-    --app-red-300: #FC8181;
-    --app-red-400: #F56565;
-    --app-red-500: #E53E3E;
-    --app-red-600: #C53030;
-    --app-red-700: #9B2C2C;
+    --app-blue-50: 210 100% 96%;
+    --app-blue-100: 212 100% 92%;
+    --app-blue-200: 213 100% 83%;
+    --app-blue-300: 214 100% 75%;
+    --app-blue-400: 215 97% 64%;
+    --app-blue-500: 217 92% 54%;
+    --app-blue-600: 220 84% 48%;
+    --app-blue-700: 224 76% 42%;
+    --app-blue-800: 226 71% 36%;
+    --app-blue-900: 224 64% 30%;
+    --app-blue-950: 226 57% 21%;
     
-    --app-green-300: #68D391;
-    --app-green-400: #48BB78;
-    --app-green-500: #38A169;
-    --app-green-600: #2F855A;
-    --app-green-700: #276749;
+    --app-red-50: 0 86% 97%;
+    --app-red-100: 0 93% 94%;
+    --app-red-200: 0 96% 89%;
+    --app-red-300: 0 94% 82%;
+    --app-red-400: 0 91% 71%;
+    --app-red-500: 0 84% 60%;
+    --app-red-600: 0 72% 51%;
+    --app-red-700: 0 74% 42%;
+    --app-red-800: 0 70% 35%;
+    --app-red-900: 0 63% 31%;
+    --app-red-950: 0 75% 15%;
+    
+    --app-peach-50: 28 100% 97%;
+    --app-peach-100: 26 100% 92%;
+    --app-peach-200: 25 100% 86%;
+    --app-peach-300: 22 100% 77%;
+    --app-peach-400: 19 97% 69%;
+    --app-peach-500: 16 93% 62%;
+    --app-peach-600: 14 89% 54%;
+    --app-peach-700: 11 90% 45%;
+    --app-peach-800: 11 82% 38%;
+    --app-peach-900: 12 75% 32%;
+    --app-peach-950: 12 75% 16%;
+    
+    --app-height: 100vh;
+    --app-safe-area-top: env(safe-area-inset-top, 0px);
+    --app-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --app-safe-area-left: env(safe-area-inset-left, 0px);
+    --app-safe-area-right: env(safe-area-inset-right, 0px);
   }
  
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
  
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
  
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
  
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
- 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
- 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 142.1 70% 45%;
+    --primary-foreground: 144.9 80.4% 10%;
  
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
+ 
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
  
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
  
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 85.7% 97.3%;
+    --destructive-foreground: 210 40% 98%;
  
-    --ring: 217.2 32.6% 17.5%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 142.1 76.2% 36.3%;
   }
 }
  
@@ -92,21 +126,65 @@
   * {
     @apply border-border;
   }
+  
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    overscroll-behavior: none;
+  }
+  
+  html, body {
+    height: 100%;
+    max-height: var(--app-height);
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
-/* Custom animations */
-@keyframes scan {
-  0% {
-    transform: translateY(-100%);
+@layer utilities {
+  /* Mobile app styling */
+  .touch-manipulation {
+    touch-action: manipulation;
   }
-  100% {
-    transform: translateY(100%);
+  
+  .animate-scan {
+    animation: scanning 1.5s linear infinite;
   }
-}
-
-.animate-scan {
-  animation: scan 1.5s linear infinite;
+  
+  @keyframes scanning {
+    0% {
+      transform: translateY(-60%);
+    }
+    100% {
+      transform: translateY(60%);
+    }
+  }
+  
+  /* Prevent text selection */
+  .no-select {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Custom shadows */
+  .shadow-app {
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
+  }
+  
+  .shadow-app-hover {
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .shadow-app-hover:hover {
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+  }
 }
