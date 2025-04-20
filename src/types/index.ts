@@ -1,4 +1,3 @@
-
 export interface Allergy {
   id: string;
   name: string;
@@ -24,6 +23,7 @@ export interface FoodItem {
   allergens?: string[];
   barcode?: string;
   nutritionInfo?: NutritionInfo;
+  inInventory?: boolean; // Added this property
 }
 
 export interface NutritionInfo {

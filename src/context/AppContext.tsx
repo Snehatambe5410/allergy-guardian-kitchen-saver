@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { AppContextType } from './AppContextType';
 import { 
@@ -10,13 +9,13 @@ import {
   MealPlan,
   AllergenCheckResult
 } from '../types';
-import initialState from './initialState';
+import * as initialState from './initialState';
 import * as userProfileActions from './userProfile/userProfileActions';
 import * as inventoryActions from './inventory/inventoryActions';
 import * as recipeActions from './recipes/recipeActions';
 import * as familyActions from './family/familyActions';
 import smartFeaturesService from '../services/smartFeaturesService';
-import localStorage from '../utils/localStorage';
+import * as localStorage from '../utils/localStorage';
 
 const AppContext = createContext<AppContextType | null>(null);
 
@@ -35,19 +34,19 @@ interface AppProviderProps {
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   // State setup from local storage or initial state
   const [userProfile, setUserProfile] = useState<UserProfile | null>(
-    localStorage.loadUserProfile(initialState.userProfile)
+    localStorage.loadUserProfile(initialState.initialUserProfile)
   );
   const [isOnboarded, setIsOnboarded] = useState<boolean>(
-    localStorage.loadIsOnboarded(initialState.isOnboarded)
+    localStorage.loadIsOnboarded(false)
   );
   const [inventory, setInventory] = useState<FoodItem[]>(
-    localStorage.loadInventory(initialState.inventory)
+    localStorage.loadInventory(initialState.initialInventory)
   );
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(
-    localStorage.loadFamilyMembers(initialState.familyMembers)
+    localStorage.loadFamilyMembers(initialState.initialFamilyMembers)
   );
   const [recipes, setRecipes] = useState<Recipe[]>(
-    localStorage.loadRecipes(initialState.recipes)
+    localStorage.loadRecipes(initialState.initialRecipes)
   );
   const [loadingData, setLoadingData] = useState<boolean>(false);
   
@@ -60,7 +59,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   );
   
   const [mealPlans, setMealPlans] = useState<MealPlan[]>(
-    localStorage.loadMealPlans(initialState.mealPlans)
+    localStorage.loadMealPlans([])
   );
 
   // Persist data to local storage when it changes
@@ -118,28 +117,57 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   // Profile Management
   const updateUserProfile = (profile: Partial<UserProfile>) => {
-    userProfileActions.updateUserProfile(profile, setUserProfile);
-    
-    // If active profile is the user profile, update it too
-    if (activeProfile && (!activeProfile.id || activeProfile.id === userProfile?.id)) {
-      setActiveProfileState({
-        ...activeProfile,
+    if (userProfile) {
+      const updated = { ...userProfile, ...profile };
+      setUserProfile(updated);
+      
+      // If active profile is the user profile, update it too
+      if (activeProfile && (!activeProfile.id || activeProfile.id === userProfile?.id)) {
+        setActiveProfileState({
+          ...activeProfile,
+          ...profile
+        });
+      }
+      
+      // If this is the first update, set onboarded to true
+      if (!isOnboarded && profile.name) {
+        setIsOnboarded(true);
+      }
+    } else if (profile.name) {
+      // Create new profile if none exists
+      const newProfile = {
+        id: crypto.randomUUID(),
+        name: profile.name,
+        dietaryPreferences: profile.dietaryPreferences || [],
+        allergies: profile.allergies || [],
+        emergencyContacts: profile.emergencyContacts || [],
         ...profile
-      });
-    }
-    
-    // If this is the first update, set onboarded to true
-    if (!isOnboarded && profile.name) {
+      } as UserProfile;
+      
+      setUserProfile(newProfile);
+      setActiveProfileState(newProfile);
       setIsOnboarded(true);
     }
   };
   
   const addAllergy = (allergy: Allergy) => {
-    userProfileActions.addAllergy(allergy, userProfile, setUserProfile);
+    if (userProfile) {
+      const updated = {
+        ...userProfile,
+        allergies: [...userProfile.allergies, allergy]
+      };
+      setUserProfile(updated);
+    }
   };
   
   const removeAllergy = (id: string) => {
-    userProfileActions.removeAllergy(id, userProfile, setUserProfile);
+    if (userProfile) {
+      const updated = {
+        ...userProfile,
+        allergies: userProfile.allergies.filter(allergy => allergy.id !== id)
+      };
+      setUserProfile(updated);
+    }
   };
   
   // Active profile management
@@ -149,61 +177,88 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   // Inventory Management
   const addInventoryItem = (item: FoodItem) => {
-    return inventoryActions.addInventoryItem(item, inventory, setInventory);
+    const newItem = { ...item };
+    if (!newItem.id) {
+      newItem.id = crypto.randomUUID();
+    }
+    setInventory(prev => [...prev, newItem]);
+    return Promise.resolve(newItem);
   };
   
   const addInventoryItems = (items: FoodItem[]) => {
-    return inventoryActions.addInventoryItems(items, inventory, setInventory);
+    const newItems = items.map(item => ({
+      ...item,
+      id: item.id || crypto.randomUUID()
+    }));
+    setInventory(prev => [...prev, ...newItems]);
+    return Promise.resolve(newItems);
   };
   
   const removeInventoryItem = (id: string) => {
-    inventoryActions.removeInventoryItem(id, inventory, setInventory);
+    setInventory(prev => prev.filter(item => item.id !== id));
   };
   
   const updateInventoryItem = (id: string, updates: Partial<FoodItem>) => {
-    return inventoryActions.updateInventoryItem(id, updates, inventory, setInventory);
+    setInventory(prev => 
+      prev.map(item => item.id === id ? { ...item, ...updates } : item)
+    );
+    return Promise.resolve();
   };
 
   // Family Profile Management
+  const familyActionsInstance = familyActions.createFamilyActions(setFamilyMembers);
+
   const addFamilyMember = (member: FamilyMember) => {
-    return familyActions.addFamilyMember(member, familyMembers, setFamilyMembers);
+    return familyActionsInstance.addFamilyMember(member);
   };
   
   const updateFamilyMember = (id: string, updates: Partial<FamilyMember>) => {
-    return familyActions.updateFamilyMember(id, updates, familyMembers, setFamilyMembers);
+    return familyActionsInstance.updateFamilyMember(id, updates);
   };
   
   const removeFamilyMember = (id: string) => {
-    return familyActions.removeFamilyMember(id, familyMembers, setFamilyMembers);
+    return familyActionsInstance.removeFamilyMember(id);
   };
   
   const syncFamilyProfiles = () => {
-    return familyActions.syncFamilyProfiles();
+    return familyActionsInstance.syncFamilyProfiles();
   };
   
   const importFamilyProfile = (profileData: Omit<FamilyMember, "id">) => {
-    return familyActions.importFamilyProfile(profileData, familyMembers, setFamilyMembers);
+    return familyActionsInstance.importFamilyProfile(profileData);
   };
   
   const exportFamilyProfile = (id: string) => {
-    return familyActions.exportFamilyProfile(id, familyMembers);
+    return familyActionsInstance.exportFamilyProfile(id);
   };
 
   // Recipe Management
   const addRecipe = (recipe: Recipe) => {
-    recipeActions.addRecipe(recipe, recipes, setRecipes);
+    const newRecipe = { ...recipe };
+    if (!newRecipe.id) {
+      newRecipe.id = crypto.randomUUID();
+    }
+    setRecipes(prev => [...prev, newRecipe]);
   };
   
   const updateRecipe = (id: string, updates: Partial<Recipe>) => {
-    recipeActions.updateRecipe(id, updates, recipes, setRecipes);
+    setRecipes(prev => 
+      prev.map(recipe => recipe.id === id ? { ...recipe, ...updates } : recipe)
+    );
   };
   
   const removeRecipe = (id: string) => {
-    recipeActions.removeRecipe(id, recipes, setRecipes);
+    setRecipes(prev => prev.filter(recipe => recipe.id !== id));
   };
   
   const toggleFavoriteRecipe = (id: string) => {
-    recipeActions.toggleFavoriteRecipe(id, recipes, setRecipes);
+    setRecipes(prev => 
+      prev.map(recipe => 
+        recipe.id === id 
+          ? { ...recipe, isFavorite: !recipe.isFavorite } 
+          : recipe
+      )
+    );
   };
 
   // Meal Planning
@@ -235,7 +290,6 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     return smartFeaturesService.generateGroceryList(selectedRecipes, inventory);
   };
 
-  // Context value
   const contextValue: AppContextType = {
     userProfile,
     isOnboarded,
