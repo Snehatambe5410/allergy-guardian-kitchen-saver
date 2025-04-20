@@ -1,118 +1,212 @@
 
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { AppContextType } from './AppContextType';
 import { 
-  initialUserProfile,
-  initialInventory,
-  initialFamilyMembers,
-  initialRecipes
-} from './initialState';
-import { createUserProfileActions } from './userProfile/userProfileActions';
-import { createInventoryActions } from './inventory/inventoryActions';
-import { createFamilyActions } from './family/familyActions';
-import { createRecipeActions } from './recipes/recipeActions';
-import { useAuth } from './AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { 
-  fetchUserProfile, 
-  fetchFamilyMembers, 
-  fetchUserInventory, 
-  fetchUserRecipes 
-} from '@/services';
-import { FamilyMember, MealPlan, Recipe, Allergy, FoodItem } from '@/types';
+  UserProfile, 
+  Allergy, 
+  FoodItem, 
+  Recipe, 
+  FamilyMember,
+  MealPlan,
+  AllergenCheckResult
+} from '../types';
+import initialState from './initialState';
+import * as userProfileActions from './userProfile/userProfileActions';
+import * as inventoryActions from './inventory/inventoryActions';
+import * as recipeActions from './recipes/recipeActions';
+import * as familyActions from './family/familyActions';
+import smartFeaturesService from '../services/smartFeaturesService';
+import localStorage from '../utils/localStorage';
 
-const AppContext = createContext<AppContextType | undefined>(undefined);
+const AppContext = createContext<AppContextType | null>(null);
 
-export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const [userProfile, setUserProfile] = useState(initialUserProfile);
-  const [inventory, setInventory] = useState(initialInventory);
-  const [familyMembers, setFamilyMembers] = useState(initialFamilyMembers);
-  const [recipes, setRecipes] = useState(initialRecipes);
-  const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [activeProfile, setActiveProfileState] = useState<FamilyMember | null>(null);
-  const { user } = useAuth();
-  const { toast } = useToast();
+export const useAppContext = () => {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useAppContext must be used within an AppProvider');
+  }
+  return context;
+};
+
+interface AppProviderProps {
+  children: ReactNode;
+}
+
+export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
+  // State setup from local storage or initial state
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(
+    localStorage.loadUserProfile(initialState.userProfile)
+  );
+  const [isOnboarded, setIsOnboarded] = useState<boolean>(
+    localStorage.loadIsOnboarded(initialState.isOnboarded)
+  );
+  const [inventory, setInventory] = useState<FoodItem[]>(
+    localStorage.loadInventory(initialState.inventory)
+  );
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(
+    localStorage.loadFamilyMembers(initialState.familyMembers)
+  );
+  const [recipes, setRecipes] = useState<Recipe[]>(
+    localStorage.loadRecipes(initialState.recipes)
+  );
+  const [loadingData, setLoadingData] = useState<boolean>(false);
   
-  // Actions for each domain
-  const userProfileActions = createUserProfileActions(setUserProfile);
-  const inventoryActions = createInventoryActions(setInventory);
-  const familyActions = createFamilyActions(setFamilyMembers);
-  const recipeActions = createRecipeActions(setRecipes);
+  const [activeProfileId, setActiveProfileId] = useState<string | null>(
+    localStorage.loadActiveProfileId(null)
+  );
   
-  // Set active profile
+  const [activeProfile, setActiveProfileState] = useState<UserProfile | FamilyMember | null>(
+    userProfile
+  );
+  
+  const [mealPlans, setMealPlans] = useState<MealPlan[]>(
+    localStorage.loadMealPlans(initialState.mealPlans)
+  );
+
+  // Persist data to local storage when it changes
+  useEffect(() => {
+    localStorage.saveUserProfile(userProfile);
+  }, [userProfile]);
+
+  useEffect(() => {
+    localStorage.saveIsOnboarded(isOnboarded);
+  }, [isOnboarded]);
+  
+  useEffect(() => {
+    localStorage.saveInventory(inventory);
+  }, [inventory]);
+  
+  useEffect(() => {
+    localStorage.saveFamilyMembers(familyMembers);
+  }, [familyMembers]);
+  
+  useEffect(() => {
+    localStorage.saveRecipes(recipes);
+  }, [recipes]);
+  
+  useEffect(() => {
+    localStorage.saveMealPlans(mealPlans);
+  }, [mealPlans]);
+  
+  useEffect(() => {
+    localStorage.saveActiveProfileId(activeProfileId);
+  }, [activeProfileId]);
+
+  // Set active profile based on activeProfileId
+  useEffect(() => {
+    if (!activeProfileId && userProfile) {
+      setActiveProfileState(userProfile);
+      return;
+    }
+    
+    if (activeProfileId && userProfile && userProfile.id === activeProfileId) {
+      setActiveProfileState(userProfile);
+      return;
+    }
+    
+    if (activeProfileId) {
+      const familyMember = familyMembers.find(member => member.id === activeProfileId);
+      if (familyMember) {
+        setActiveProfileState(familyMember);
+        return;
+      }
+    }
+    
+    // Fallback to user profile
+    setActiveProfileState(userProfile);
+  }, [activeProfileId, userProfile, familyMembers]);
+
+  // Profile Management
+  const updateUserProfile = (profile: Partial<UserProfile>) => {
+    userProfileActions.updateUserProfile(profile, setUserProfile);
+    
+    // If active profile is the user profile, update it too
+    if (activeProfile && (!activeProfile.id || activeProfile.id === userProfile?.id)) {
+      setActiveProfileState({
+        ...activeProfile,
+        ...profile
+      });
+    }
+    
+    // If this is the first update, set onboarded to true
+    if (!isOnboarded && profile.name) {
+      setIsOnboarded(true);
+    }
+  };
+  
+  const addAllergy = (allergy: Allergy) => {
+    userProfileActions.addAllergy(allergy, userProfile, setUserProfile);
+  };
+  
+  const removeAllergy = (id: string) => {
+    userProfileActions.removeAllergy(id, userProfile, setUserProfile);
+  };
+  
+  // Active profile management
   const setActiveProfile = (profileId: string | null) => {
-    if (!profileId) {
-      setActiveProfileState(null);
-      return;
-    }
-    
-    if (profileId === 'primary' && userProfile) {
-      setActiveProfileState(userProfile as unknown as FamilyMember);
-      return;
-    }
-    
-    const member = familyMembers.find(m => m.id === profileId);
-    if (member) {
-      setActiveProfileState(member);
-    }
+    setActiveProfileId(profileId);
+  };
+
+  // Inventory Management
+  const addInventoryItem = (item: FoodItem) => {
+    return inventoryActions.addInventoryItem(item, inventory, setInventory);
   };
   
-  // Smart feature: Check ingredient safety
-  const checkIngredientSafety = (ingredientName: string) => {
-    const profile = activeProfile || userProfile;
-    if (!profile) return { safe: true, allergies: [] };
-    
-    const lowerCaseIngredient = ingredientName.toLowerCase();
-    const allergies = profile.allergies.filter(allergy => 
-      lowerCaseIngredient.includes(allergy.name.toLowerCase())
-    );
-    
-    // Generate alternatives (simplified version)
-    const alternatives = allergies.length > 0 ? [
-      "coconut milk", "oat milk", "almond milk", "sunflower butter",
-      "rice flour", "cassava flour", "tofu", "coconut yogurt"
-    ].filter(alt => !alt.includes(allergies[0]?.name.toLowerCase())) : [];
-    
-    return {
-      safe: allergies.length === 0,
-      allergies,
-      alternatives: allergies.length > 0 ? alternatives : undefined
-    };
+  const addInventoryItems = (items: FoodItem[]) => {
+    return inventoryActions.addInventoryItems(items, inventory, setInventory);
   };
   
-  // Smart feature: Suggest recipes
-  const suggestRecipes = () => {
-    const profile = activeProfile || userProfile;
-    if (!profile) return [];
-    
-    // Filter recipes that don't contain allergens
-    const userAllergens = profile.allergies.map(a => a.name.toLowerCase());
-    
-    return recipes.filter(recipe => {
-      const recipeAllergens = recipe.allergens.map(a => a.toLowerCase());
-      return !recipeAllergens.some(allergen => userAllergens.includes(allergen));
-    }).slice(0, 5); // Return top 5
+  const removeInventoryItem = (id: string) => {
+    inventoryActions.removeInventoryItem(id, inventory, setInventory);
   };
   
-  // Smart feature: Generate grocery list
-  const generateGroceryList = (recipeIds: string[]) => {
-    const selectedRecipes = recipes.filter(r => recipeIds.includes(r.id));
-    
-    // Simple implementation - just extract ingredients as food items
-    return selectedRecipes.flatMap(recipe => 
-      recipe.ingredients.map(ingredient => ({
-        id: crypto.randomUUID(),
-        name: ingredient,
-        category: 'Other',
-        quantity: 1,
-        unit: 'item',
-        expiryDate: ''
-      }))
-    );
+  const updateInventoryItem = (id: string, updates: Partial<FoodItem>) => {
+    return inventoryActions.updateInventoryItem(id, updates, inventory, setInventory);
+  };
+
+  // Family Profile Management
+  const addFamilyMember = (member: FamilyMember) => {
+    return familyActions.addFamilyMember(member, familyMembers, setFamilyMembers);
   };
   
-  // Meal plan features
+  const updateFamilyMember = (id: string, updates: Partial<FamilyMember>) => {
+    return familyActions.updateFamilyMember(id, updates, familyMembers, setFamilyMembers);
+  };
+  
+  const removeFamilyMember = (id: string) => {
+    return familyActions.removeFamilyMember(id, familyMembers, setFamilyMembers);
+  };
+  
+  const syncFamilyProfiles = () => {
+    return familyActions.syncFamilyProfiles();
+  };
+  
+  const importFamilyProfile = (profileData: Omit<FamilyMember, "id">) => {
+    return familyActions.importFamilyProfile(profileData, familyMembers, setFamilyMembers);
+  };
+  
+  const exportFamilyProfile = (id: string) => {
+    return familyActions.exportFamilyProfile(id, familyMembers);
+  };
+
+  // Recipe Management
+  const addRecipe = (recipe: Recipe) => {
+    recipeActions.addRecipe(recipe, recipes, setRecipes);
+  };
+  
+  const updateRecipe = (id: string, updates: Partial<Recipe>) => {
+    recipeActions.updateRecipe(id, updates, recipes, setRecipes);
+  };
+  
+  const removeRecipe = (id: string) => {
+    recipeActions.removeRecipe(id, recipes, setRecipes);
+  };
+  
+  const toggleFavoriteRecipe = (id: string) => {
+    recipeActions.toggleFavoriteRecipe(id, recipes, setRecipes);
+  };
+
+  // Meal Planning
   const addMealPlan = (plan: MealPlan) => {
     setMealPlans(prev => [...prev, plan]);
   };
@@ -127,85 +221,73 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setMealPlans(prev => prev.filter(plan => plan.id !== id));
   };
   
-  // Fetch all user data when authenticated
-  useEffect(() => {
-    const loadUserData = async () => {
-      if (!user) return;
-      
-      setIsLoading(true);
-      try {
-        // Load user profile
-        const profile = await fetchUserProfile();
-        if (profile) {
-          setUserProfile(profile);
-        }
-
-        // Load family members
-        const members = await fetchFamilyMembers();
-        if (members) {
-          setFamilyMembers(members);
-        }
-
-        // Load inventory
-        const items = await fetchUserInventory();
-        if (items) {
-          setInventory(items);
-        }
-
-        // Load recipes
-        const recipeData = await fetchUserRecipes();
-        if (recipeData) {
-          setRecipes(recipeData);
-        }
-        
-        // Set the primary profile as active by default
-        setActiveProfile('primary');
-      } catch (error) {
-        console.error("Error loading user data:", error);
-        toast({
-          title: "Error loading data",
-          description: "There was a problem loading your data.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadUserData();
-  }, [user, toast]);
+  // Smart Features
+  const checkIngredientSafety = (ingredientName: string): AllergenCheckResult => {
+    return smartFeaturesService.checkIngredientSafety(ingredientName, activeProfile);
+  };
   
+  const suggestRecipes = (): Recipe[] => {
+    return smartFeaturesService.suggestRecipes(inventory, recipes, activeProfile);
+  };
+  
+  const generateGroceryList = (recipeIds: string[]): FoodItem[] => {
+    const selectedRecipes = recipes.filter(recipe => recipeIds.includes(recipe.id));
+    return smartFeaturesService.generateGroceryList(selectedRecipes, inventory);
+  };
+
+  // Context value
+  const contextValue: AppContextType = {
+    userProfile,
+    isOnboarded,
+    inventory,
+    familyMembers,
+    recipes,
+    loadingData,
+    activeProfile,
+    mealPlans,
+    
+    // Profile management
+    updateUserProfile,
+    addAllergy,
+    removeAllergy,
+    setActiveProfile,
+    
+    // Inventory management
+    addInventoryItem,
+    addInventoryItems,
+    removeInventoryItem,
+    updateInventoryItem,
+    
+    // Family profiles
+    addFamilyMember,
+    updateFamilyMember,
+    removeFamilyMember,
+    syncFamilyProfiles,
+    importFamilyProfile,
+    exportFamilyProfile,
+    
+    // Recipe management
+    addRecipe,
+    updateRecipe,
+    removeRecipe,
+    toggleFavoriteRecipe,
+    
+    // Meal planning
+    addMealPlan,
+    updateMealPlan,
+    removeMealPlan,
+    
+    // Smart features
+    checkIngredientSafety,
+    suggestRecipes,
+    generateGroceryList
+  };
+
   return (
-    <AppContext.Provider value={{
-      userProfile,
-      isOnboarded: !!userProfile,
-      inventory,
-      familyMembers,
-      recipes,
-      loadingData: isLoading,
-      activeProfile: activeProfile || userProfile,
-      mealPlans,
-      setActiveProfile,
-      checkIngredientSafety,
-      suggestRecipes,
-      generateGroceryList,
-      addMealPlan,
-      updateMealPlan,
-      removeMealPlan,
-      ...userProfileActions,
-      ...inventoryActions,
-      ...familyActions,
-      ...recipeActions
-    }}>
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
   );
 };
 
-export const useAppContext = () => {
-  const context = useContext(AppContext);
-  if (context === undefined) {
-    throw new Error('useAppContext must be used within an AppProvider');
-  }
-  return context;
-};
+export default AppContext;

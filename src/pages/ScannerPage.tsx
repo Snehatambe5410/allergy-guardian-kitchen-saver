@@ -1,278 +1,251 @@
 
-import { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, RotateCw, X, Upload, CheckCircle2, Search, Loader2 } from 'lucide-react';
+import AppLayout from '../components/layout/AppLayout';
+import { Camera, Image, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import MobileAppLayout from '../components/layout/MobileAppLayout';
 import { Input } from '../components/ui/input';
-import { useToast } from '@/hooks/use-toast';
-import { useAppContext } from '@/context/AppContext';
-import { AllergenResults } from '@/components/allergen/AllergenResults';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
+import { Card, CardContent } from '../components/ui/card';
+import { AllergenDetector } from '../components/allergen/AllergenDetector';
+import { useToast } from '../hooks/use-toast';
+import { useAppContext } from '../context/AppContext';
+import { AllergenCheckResult } from '../types';
 
 const ScannerPage = () => {
   const navigate = useNavigate();
-  const [isScanning, setIsScanning] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [manualIngredient, setManualIngredient] = useState('');
-  const [isChecking, setIsChecking] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { checkIngredientSafety, activeProfile } = useAppContext();
-  const [scanResult, setScanResult] = useState<{
-    ingredient: string;
-    result: ReturnType<typeof checkIngredientSafety>;
-  } | null>(null);
-  
-  const handleStartScan = () => {
+  const [activeTab, setActiveTab] = useState('text');
+  const [scanResult, setScanResult] = useState<AllergenCheckResult | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+
+  // This is a mock function since we can't implement actual camera scanning
+  const handleCameraCapture = () => {
     setIsScanning(true);
-    // Simulate a scan for demonstration purposes
-    // In a real app, this would use a barcode scanning library
+    // Simulating a camera scan with a timeout
     setTimeout(() => {
-      setIsScanning(false);
-      // Example: Detect "peanut butter" from barcode
-      const mockIngredient = "peanut butter";
-      const result = checkIngredientSafety(mockIngredient);
-      setScanResult({
-        ingredient: mockIngredient,
-        result
+      // Randomly select an item to simulate camera detection
+      const mockDetectedItems = ['Milk', 'Eggs', 'Peanuts', 'Wheat', 'Apples', 'Chicken'];
+      const randomItem = mockDetectedItems[Math.floor(Math.random() * mockDetectedItems.length)];
+      
+      // Get safety check
+      const result = checkIngredientSafety(randomItem);
+      
+      // Set the result and show a toast
+      setScanResult(result);
+      toast({
+        title: `Detected: ${randomItem}`,
+        description: result.safe 
+          ? 'This item is safe for the current profile.' 
+          : 'Warning: This contains allergens for the current profile!',
+        variant: result.safe ? 'default' : 'destructive'
       });
       
-      if (!result.safe) {
-        toast({
-          title: "Allergen Detected!",
-          description: `${mockIngredient} contains allergens for ${activeProfile?.name || 'current profile'}.`,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Safe Ingredient",
-          description: `${mockIngredient} is safe for ${activeProfile?.name || 'current profile'}.`,
-        });
-      }
+      setIsScanning(false);
     }, 2000);
   };
   
-  const handleCancelScan = () => {
-    setIsScanning(false);
-    setUploadedImage(null);
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Only accept image files
-    if (!file.type.match('image.*')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload an image file",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsUploading(true);
+    setIsScanning(true);
     
-    // Create a preview of the image
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setUploadedImage(event.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-    
-    // Simulate processing the barcode from the image
+    // In a real app, we would send the image to a backend service
+    // For now, we'll just simulate detection after a delay
     setTimeout(() => {
-      setIsUploading(false);
-      // Example: Detect "milk" from image
-      const mockIngredient = "milk";
-      const result = checkIngredientSafety(mockIngredient);
-      setScanResult({
-        ingredient: mockIngredient,
-        result
+      // Simulate detection based on the file name (for demo purposes)
+      let detectedItem = 'Unknown food item';
+      
+      const filename = file.name.toLowerCase();
+      if (filename.includes('milk') || filename.includes('dairy')) {
+        detectedItem = 'Milk';
+      } else if (filename.includes('egg')) {
+        detectedItem = 'Eggs';
+      } else if (filename.includes('peanut')) {
+        detectedItem = 'Peanuts';
+      } else if (filename.includes('wheat') || filename.includes('bread')) {
+        detectedItem = 'Wheat bread';
+      } else if (filename.includes('apple')) {
+        detectedItem = 'Apples';
+      }
+      
+      // Get safety check
+      const result = checkIngredientSafety(detectedItem);
+      
+      // Set the result and show a toast
+      setScanResult(result);
+      toast({
+        title: `Detected: ${detectedItem}`,
+        description: result.safe 
+          ? 'This item is safe for the current profile.' 
+          : 'Warning: This contains allergens for the current profile!',
+        variant: result.safe ? 'default' : 'destructive'
       });
       
-      if (!result.safe) {
-        toast({
-          title: "Allergen Detected!",
-          description: `${mockIngredient} contains allergens for ${activeProfile?.name || 'current profile'}.`,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Safe Ingredient",
-          description: `${mockIngredient} is safe for ${activeProfile?.name || 'current profile'}.`,
-        });
-      }
-    }, 2000);
+      setIsScanning(false);
+    }, 1500);
   };
-
-  const handleManualCheck = () => {
-    if (!manualIngredient.trim()) {
-      toast({
-        title: "Empty Input",
-        description: "Please enter an ingredient name.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsChecking(true);
-    setTimeout(() => {
-      const result = checkIngredientSafety(manualIngredient);
-      setScanResult({
-        ingredient: manualIngredient,
-        result
-      });
-      setIsChecking(false);
-      setManualIngredient('');
-    }, 800);
-  };
-
-  const triggerFileUpload = () => {
-    fileInputRef.current?.click();
+  
+  const handleScanResultFound = (results: AllergenCheckResult) => {
+    setScanResult(results);
   };
 
   return (
-    <MobileAppLayout title="Allergen Scanner">
-      <div className="p-4 flex flex-col items-center justify-start">
-        <div className="aspect-square w-full max-w-md bg-black relative rounded-xl overflow-hidden mb-6">
-          {uploadedImage ? (
-            // Show uploaded image
-            <div className="absolute inset-0 flex items-center justify-center">
-              <img 
-                src={uploadedImage} 
-                alt="Uploaded barcode" 
-                className="w-full h-full object-contain"
-              />
-              {isUploading && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <div className="w-32 h-32 border-4 border-green-500 rounded-lg animate-pulse" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="h-1 w-full bg-green-500 animate-scan opacity-50" />
+    <AppLayout title="Food Scanner">
+      <div className="p-4 max-w-lg mx-auto">
+        <div className="mb-6">
+          <h2 className="text-lg font-medium flex items-center gap-2 mb-2">
+            <AlertCircle className="text-orange-500" size={20} />
+            Allergy Detection
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
+            Scan food labels or enter ingredients to check if they're safe for {activeProfile?.name || 'your profile'}.
+          </p>
+          
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid grid-cols-3 mb-4">
+              <TabsTrigger value="text">Text Input</TabsTrigger>
+              <TabsTrigger value="camera">Camera</TabsTrigger>
+              <TabsTrigger value="image">Upload Image</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="text" className="mt-0">
+              <Card>
+                <CardContent className="p-4">
+                  <AllergenDetector onResultsFound={handleScanResultFound} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="camera" className="mt-0">
+              <Card>
+                <CardContent className="pt-6 px-6 pb-4">
+                  <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg mb-4 flex items-center justify-center">
+                    {isScanning ? (
+                      <div className="flex flex-col items-center">
+                        <Loader2 size={48} className="animate-spin text-gray-400 mb-2" />
+                        <p className="text-sm text-gray-500">Scanning...</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center">
+                        <Camera size={48} className="text-gray-400 mb-2" />
+                        <p className="text-sm text-gray-500">Camera preview will appear here</p>
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
-            </div>
-          ) : isScanning ? (
-            // Show scanning animation
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-32 h-32 border-4 border-green-500 rounded-lg animate-pulse" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="h-1 w-full bg-green-500 animate-scan opacity-50" />
-              </div>
-            </div>
-          ) : (
-            // Show camera placeholder
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-              <Camera size={64} className="text-gray-400" />
-              <p className="text-white text-center absolute bottom-10">Position barcode within the frame</p>
-            </div>
-          )}
+                  <Button 
+                    className="w-full" 
+                    onClick={handleCameraCapture} 
+                    disabled={isScanning}
+                  >
+                    {isScanning ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Scanning...
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="mr-2 h-4 w-4" />
+                        Capture Food Label
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="image" className="mt-0">
+              <Card>
+                <CardContent className="pt-6 px-6 pb-4">
+                  <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg mb-4 flex items-center justify-center">
+                    {isScanning ? (
+                      <div className="flex flex-col items-center">
+                        <Loader2 size={48} className="animate-spin text-gray-400 mb-2" />
+                        <p className="text-sm text-gray-500">Processing image...</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center">
+                        <Image size={48} className="text-gray-400 mb-2" />
+                        <p className="text-sm text-gray-500">Upload a food label image</p>
+                      </div>
+                    )}
+                  </div>
+                  <label className="w-full">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                      disabled={isScanning}
+                    />
+                    <Button 
+                      className="w-full" 
+                      variant="outline" 
+                      disabled={isScanning}
+                      asChild
+                    >
+                      <span>
+                        <Image className="mr-2 h-4 w-4" />
+                        Upload Food Image
+                      </span>
+                    </Button>
+                  </label>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
         
-        {/* Manual ingredient check */}
-        <div className="w-full max-w-md mb-6">
-          <div className="flex items-center gap-2">
-            <Input
-              value={manualIngredient}
-              onChange={(e) => setManualIngredient(e.target.value)}
-              placeholder="Enter ingredient name..."
-              className="flex-1"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleManualCheck();
-                }
-              }}
-            />
-            <Button 
-              onClick={handleManualCheck}
-              disabled={isChecking}
-              className="min-w-[90px]"
-            >
-              {isChecking ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Checking
-                </>
-              ) : (
-                <>
-                  <Search className="mr-2 h-4 w-4" />
-                  Check
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-        
+        {/* Results section */}
         {scanResult && (
-          <div className="w-full max-w-md mb-6">
-            <h3 className="text-lg font-medium mb-2">Scan Result</h3>
-            <AllergenResults 
-              ingredient={scanResult.ingredient}
-              result={scanResult.result}
-            />
-          </div>
-        )}
-        
-        {isScanning || isUploading ? (
-          <div className="space-y-4 w-full max-w-md">
-            <p className="text-center text-gray-500">
-              {isScanning ? "Scanning..." : "Processing uploaded image..."}
-            </p>
-            <Button 
-              onClick={handleCancelScan}
-              variant="outline"
-              size="lg"
-              className="w-full"
-            >
-              <X className="mr-2" size={18} />
-              Cancel
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4 w-full max-w-md">
-            <Button 
-              onClick={handleStartScan}
-              size="lg"
-              className="w-full bg-green-600 hover:bg-green-700"
-            >
-              <Camera className="mr-2" size={18} />
-              Scan Barcode
-            </Button>
-            
-            <div className="relative">
+          <div className={`mt-6 p-4 rounded-lg ${
+            scanResult.safe 
+              ? 'bg-green-50 dark:bg-green-900/20 border border-green-200' 
+              : 'bg-red-50 dark:bg-red-900/20 border border-red-200'
+          }`}>
+            <div className="flex justify-between">
+              <div>
+                <h3 className="font-medium mb-2">Scan Results</h3>
+                <div className="flex flex-wrap gap-2">
+                  {scanResult.safe ? (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                      Safe
+                    </span>
+                  ) : (
+                    <>
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-red-100 text-red-800">
+                        Not Safe
+                      </span>
+                      {scanResult.allergies.map((allergy, index) => (
+                        <span 
+                          key={index}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-red-50 text-red-800 border border-red-200"
+                        >
+                          {allergy.name}
+                        </span>
+                      ))}
+                    </>
+                  )}
+                </div>
+              </div>
+              
               <Button 
-                variant="outline"
-                size="lg"
-                className="w-full"
-                onClick={triggerFileUpload}
+                size="sm" 
+                onClick={() => {
+                  navigate('/scan-result', { 
+                    state: { scanResult } 
+                  });
+                }}
               >
-                <Upload className="mr-2" size={18} />
-                Upload Barcode Image
+                View Details
               </Button>
-              <Input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
-                onChange={handleFileUpload}
-              />
             </div>
-            
-            <Button 
-              variant="outline"
-              size="lg"
-              className="w-full"
-              onClick={() => navigate('/inventory')}
-            >
-              <RotateCw className="mr-2" size={18} />
-              Go To Inventory
-            </Button>
           </div>
         )}
       </div>
-    </MobileAppLayout>
+    </AppLayout>
   );
 };
 
