@@ -23,7 +23,7 @@ export interface FoodItem {
   allergens?: string[];
   barcode?: string;
   nutritionInfo?: NutritionInfo;
-  inInventory?: boolean; // Added this property
+  inInventory?: boolean; // This property is here
 }
 
 export interface NutritionInfo {
@@ -37,7 +37,7 @@ export interface NutritionInfo {
 }
 
 export interface UserProfile {
-  id?: string; // Added optional id field
+  id?: string;
   name: string;
   dietaryPreferences: string[];
   allergies: Allergy[];
@@ -82,6 +82,14 @@ export interface Recipe {
   calories?: number;
   difficulty?: 'easy' | 'medium' | 'hard';
   tags?: string[];
+  nutritionInfo?: NutritionInfo;
+  createdAt?: string;
+  updatedAt?: string;
+  isPrivate?: boolean;
+  rating?: number;
+  cookingTime?: number;
+  totalTime?: number;
+  notes?: string;
 }
 
 export interface MealPlan {
