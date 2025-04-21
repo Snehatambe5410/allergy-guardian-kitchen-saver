@@ -48,20 +48,26 @@ export const importSampleRecipeToUserCollection = async (recipe: Recipe): Promis
     }
 
     // Convert Supabase format to app format
+    // Use type assertion to tell TypeScript that additional properties might exist
+    const recipeData = data as typeof data & { 
+      cuisine_type?: string; 
+      meal_type?: string;
+    };
+
     return {
-      id: data.id,
-      name: data.name,
-      description: data.description || "",
-      ingredients: data.ingredients || [],
-      instructions: data.instructions || [],
-      allergens: data.allergens || [],
-      preparationTime: data.preparation_time || 0,
-      servings: data.servings || 2,
-      isFavorite: data.is_favorite || false,
-      image: data.image_url,
+      id: recipeData.id,
+      name: recipeData.name,
+      description: recipeData.description || "",
+      ingredients: recipeData.ingredients || [],
+      instructions: recipeData.instructions || [],
+      allergens: recipeData.allergens || [],
+      preparationTime: recipeData.preparation_time || 0,
+      servings: recipeData.servings || 2,
+      isFavorite: recipeData.is_favorite || false,
+      image: recipeData.image_url,
       // Safely extract these properties if they exist in the database response
-      cuisineType: data.cuisine_type || undefined,
-      mealType: data.meal_type || undefined,
+      cuisineType: recipeData.cuisine_type || undefined,
+      mealType: recipeData.meal_type || undefined,
     };
   } catch (error) {
     console.error("Error in importSampleRecipeToUserCollection:", error);
