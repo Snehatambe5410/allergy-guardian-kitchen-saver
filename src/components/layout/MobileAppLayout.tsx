@@ -31,7 +31,7 @@ export default function MobileAppLayout({
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md p-4 border-b flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md p-4 border-b flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">{title}</h1>
         </div>
@@ -41,14 +41,14 @@ export default function MobileAppLayout({
       </header>
       
       {/* Main Content Area with ScrollArea */}
-      <ScrollArea className="flex-1 overflow-y-auto">
-        <main className="max-w-3xl mx-auto pb-16">
+      <ScrollArea className="flex-1 overflow-y-auto pb-16">
+        <main className="max-w-3xl mx-auto">
           {children}
         </main>
       </ScrollArea>
       
       {/* Bottom Navigation Bar */}
-      <nav className="sticky bottom-0 z-10 bg-white dark:bg-gray-900 border-t">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-t">
         <div className="flex justify-around items-center">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;

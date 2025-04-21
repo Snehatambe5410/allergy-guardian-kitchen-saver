@@ -23,6 +23,7 @@ import {
 } from '../ui/dropdown-menu';
 import { Badge } from '../ui/badge';
 import { Slider } from '../ui/slider';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface RecipeBrowserProps {
   recipes: Recipe[];
@@ -179,24 +180,26 @@ const RecipeBrowser = ({
               
               <DropdownMenuSeparator />
               <DropdownMenuLabel>Exclude Allergens</DropdownMenuLabel>
-              <div className="flex flex-wrap gap-2 my-2">
-                {allAllergens.map(allergen => (
-                  <Badge
-                    key={allergen}
-                    variant={allergenFilter.includes(allergen) ? "destructive" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => {
-                      setAllergenFilter(prev => 
-                        prev.includes(allergen)
-                          ? prev.filter(a => a !== allergen)
-                          : [...prev, allergen]
-                      );
-                    }}
-                  >
-                    {allergen}
-                  </Badge>
-                ))}
-              </div>
+              <ScrollArea className="h-32 my-2">
+                <div className="flex flex-wrap gap-2">
+                  {allAllergens.map(allergen => (
+                    <Badge
+                      key={allergen}
+                      variant={allergenFilter.includes(allergen) ? "destructive" : "outline"}
+                      className="cursor-pointer"
+                      onClick={() => {
+                        setAllergenFilter(prev => 
+                          prev.includes(allergen)
+                            ? prev.filter(a => a !== allergen)
+                            : [...prev, allergen]
+                        );
+                      }}
+                    >
+                      {allergen}
+                    </Badge>
+                  ))}
+                </div>
+              </ScrollArea>
               
               <DropdownMenuSeparator />
               <DropdownMenuLabel>Maximum Preparation Time: {maxPrepTime} min</DropdownMenuLabel>
@@ -293,8 +296,8 @@ const RecipeBrowser = ({
       </div>
       
       {/* Recipe grid with improved scrolling */}
-      <div className="relative pb-4 overflow-y-auto max-h-[70vh] pr-2 -mr-2">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <ScrollArea className="h-[calc(100vh-270px)]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pr-4">
           {filteredRecipes.map(recipe => (
             <div 
               key={recipe.id} 
@@ -320,7 +323,7 @@ const RecipeBrowser = ({
             </p>
           </div>
         )}
-      </div>
+      </ScrollArea>
     </div>
   );
 };

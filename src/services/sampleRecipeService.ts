@@ -1,3 +1,4 @@
+
 import { Recipe } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { importSampleRecipe, sampleRecipes } from "@/data/sampleRecipes";
@@ -34,8 +35,8 @@ export const importSampleRecipeToUserCollection = async (recipe: Recipe): Promis
         servings: recipe.servings,
         is_favorite: recipe.isFavorite,
         image_url: recipe.image,
-        cuisine_type: recipe.cuisineType,
-        meal_type: recipe.mealType,
+        cuisine_type: recipe.cuisineType || null,
+        meal_type: recipe.mealType || null,
       })
       .select()
       .single();
@@ -57,8 +58,8 @@ export const importSampleRecipeToUserCollection = async (recipe: Recipe): Promis
       servings: data.servings || 2,
       isFavorite: data.is_favorite || false,
       image: data.image_url,
-      cuisineType: data.cuisine_type,
-      mealType: data.meal_type,
+      cuisineType: data.cuisine_type || undefined,
+      mealType: data.meal_type || undefined,
     };
   } catch (error) {
     console.error("Error in importSampleRecipeToUserCollection:", error);

@@ -179,6 +179,14 @@ const RecipesPage = () => {
     setIsDialogOpen(false);
   };
 
+  const handleImportRecipe = (recipe: Recipe) => {
+    addRecipe(recipe);
+    toast({
+      title: "Recipe imported",
+      description: `${recipe.name} has been added to your recipes.`,
+    });
+  };
+
   return (
     <AppLayout title="Recipes">
       <ScrollArea className="h-[calc(100vh-120px)]">
@@ -200,7 +208,7 @@ const RecipesPage = () => {
             </TabsContent>
             
             <TabsContent value="sample-recipes" className="mt-0">
-              <SampleRecipesBrowser />
+              <SampleRecipesBrowser onImport={handleImportRecipe} />
             </TabsContent>
           </Tabs>
           

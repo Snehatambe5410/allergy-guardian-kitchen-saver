@@ -3,22 +3,25 @@ import { useState, useEffect } from 'react';
 import { useToast } from '../../hooks/use-toast';
 import { Recipe } from '@/types';
 import { useAppContext } from '@/context/AppContext';
-import RecipeCard from './RecipeCard';
-import { Button } from '../ui/button';
 import RecipeBrowser from './RecipeBrowser';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Check, AlertCircle } from 'lucide-react';
+import { Button } from '../ui/button';
 import { fetchSampleRecipes, importSampleRecipeToUserCollection } from '@/services/sampleRecipeService';
 
-const SampleRecipesBrowser = () => {
+interface SampleRecipesBrowserProps {
+  onImport: (recipe: Recipe) => void;
+}
+
+const SampleRecipesBrowser = ({ onImport }: SampleRecipesBrowserProps) => {
   const [sampleRecipes, setSampleRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [showRecipeDetail, setShowRecipeDetail] = useState(false);
   const [importing, setImporting] = useState(false);
   const { toast } = useToast();
-  const { addRecipe, activeProfile } = useAppContext();
+  const { activeProfile } = useAppContext();
 
   useEffect(() => {
     const loadSampleRecipes = async () => {
@@ -52,12 +55,7 @@ const SampleRecipesBrowser = () => {
     setImporting(true);
     try {
       const importedRecipe = await importSampleRecipeToUserCollection(selectedRecipe);
-      addRecipe(importedRecipe);
-      
-      toast({
-        title: 'Recipe imported',
-        description: `${selectedRecipe.name} has been added to your recipes.`,
-      });
+      onImport(importedRecipe);
       
       setShowRecipeDetail(false);
     } catch (error) {
