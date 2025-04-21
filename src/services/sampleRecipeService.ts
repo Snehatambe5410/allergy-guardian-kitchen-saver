@@ -35,8 +35,9 @@ export const importSampleRecipeToUserCollection = async (recipe: Recipe): Promis
         servings: recipe.servings,
         is_favorite: recipe.isFavorite,
         image_url: recipe.image,
-        cuisine_type: recipe.cuisineType || null,
-        meal_type: recipe.mealType || null,
+        // Add these properties to the insert operation if they exist in the recipe
+        ...(recipe.cuisineType && { cuisine_type: recipe.cuisineType }),
+        ...(recipe.mealType && { meal_type: recipe.mealType }),
       })
       .select()
       .single();
@@ -58,6 +59,7 @@ export const importSampleRecipeToUserCollection = async (recipe: Recipe): Promis
       servings: data.servings || 2,
       isFavorite: data.is_favorite || false,
       image: data.image_url,
+      // Safely extract these properties if they exist in the database response
       cuisineType: data.cuisine_type || undefined,
       mealType: data.meal_type || undefined,
     };
