@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
 import { useAppContext } from '../context/AppContext';
-import { useIsMobile } from '../hooks/useIsMobile';
+import { useIsMobile } from '../hooks/use-mobile';
 import WelcomeScreen from '../components/onboarding/WelcomeScreen';
 
 const HomePage = () => {
@@ -10,7 +10,6 @@ const HomePage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  // Redirect to onboarding if not onboarded
   useEffect(() => {
     if (!isOnboarded) {
       navigate('/onboarding');
@@ -24,12 +23,10 @@ const HomePage = () => {
   return (
     <AppLayout title="Allergy Guardian">
       <div className="p-4">
-        {/* Welcome section */}
         <div className="mb-6">
           <WelcomeScreen />
         </div>
         
-        {/* Main content area */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">
             Welcome, {activeProfile?.name || userProfile?.name || 'User'}!
@@ -38,7 +35,6 @@ const HomePage = () => {
             Explore our features to manage your allergies and discover safe food options.
           </p>
           
-          {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button 
               onClick={() => navigate('/scanner')}
@@ -61,7 +57,6 @@ const HomePage = () => {
             </button>
           </div>
           
-          {/* Tips and Information */}
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 dark:border-yellow-600 p-4 rounded-md">
             <h4 className="font-medium">Tip of the Day</h4>
             <p className="text-sm text-gray-700 dark:text-gray-300">

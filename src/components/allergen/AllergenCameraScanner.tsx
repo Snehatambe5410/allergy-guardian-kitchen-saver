@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Camera, CameraResultType } from '@capacitor/camera';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Button } from '../ui/button';
 import { Camera as CameraIcon, Image, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
@@ -22,29 +21,23 @@ export const AllergenCameraScanner: React.FC<AllergenCameraScannerProps> = ({
   const { toast } = useToast();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   
-  const captureImage = async () => {
+  const takePhoto = async () => {
     try {
       setIsScanning(true);
       
-      const image = await Camera.getPhoto({
+      const photo = await Camera.getPhoto({
+        source: CameraSource.Camera,
         quality: 90,
         allowEditing: false,
-        resultType: CameraResultType.DataUrl,
-        source: 'CAMERA'
+        resultType: 'uri'
       });
       
-      setPreviewImage(image.dataUrl || null);
+      setPreviewImage(photo.uri || null);
       
-      // In a real app, we would send this image to a backend OCR service
-      // For now, we'll simulate detection after a delay
       setTimeout(() => {
-        // Simulate ingredient text extraction from the image
         const detectedIngredients = simulateOCRExtraction();
-        
-        // Process the detected ingredients for allergens
         const result = checkIngredientSafety(detectedIngredients);
         
-        // Show results
         toast({
           title: `Scan Complete`,
           description: result.safe 
@@ -58,7 +51,7 @@ export const AllergenCameraScanner: React.FC<AllergenCameraScannerProps> = ({
       }, 2000);
       
     } catch (error) {
-      console.error('Camera error:', error);
+      console.error('Error taking photo', error);
       toast({
         title: 'Camera Error',
         description: 'Could not access camera. Please check permissions.',
@@ -68,20 +61,19 @@ export const AllergenCameraScanner: React.FC<AllergenCameraScannerProps> = ({
     }
   };
   
-  const uploadImage = async () => {
+  const pickFromGallery = async () => {
     try {
       setIsScanning(true);
       
-      const image = await Camera.getPhoto({
+      const photo = await Camera.getPhoto({
+        source: CameraSource.Photos,
         quality: 90,
         allowEditing: false,
-        resultType: CameraResultType.DataUrl,
-        source: 'PHOTOS'
+        resultType: 'uri'
       });
       
-      setPreviewImage(image.dataUrl || null);
+      setPreviewImage(photo.uri || null);
       
-      // Simulate OCR processing like above
       setTimeout(() => {
         const detectedIngredients = simulateOCRExtraction();
         const result = checkIngredientSafety(detectedIngredients);
@@ -99,7 +91,7 @@ export const AllergenCameraScanner: React.FC<AllergenCameraScannerProps> = ({
       }, 2000);
       
     } catch (error) {
-      console.error('Photo selection error:', error);
+      console.error('Error picking photo', error);
       toast({
         title: 'Image Error',
         description: 'Could not access photos. Please check permissions.',
@@ -109,9 +101,7 @@ export const AllergenCameraScanner: React.FC<AllergenCameraScannerProps> = ({
     }
   };
   
-  // Simulate OCR text extraction (in a real app, this would call an OCR service)
   const simulateOCRExtraction = (): string => {
-    // Array of common ingredients and allergens
     const ingredients = [
       "Milk, Sugar, Cocoa Butter, Chocolate, Soy Lecithin, Vanilla",
       "Wheat Flour, Water, Vegetable Oil, Salt, Yeast",
@@ -161,7 +151,7 @@ export const AllergenCameraScanner: React.FC<AllergenCameraScannerProps> = ({
         <Button 
           variant={previewImage ? "outline" : "default"}
           className="w-full" 
-          onClick={captureImage} 
+          onClick={takePhoto} 
           disabled={isScanning}
         >
           <CameraIcon className="mr-2 h-4 w-4" />
@@ -171,7 +161,7 @@ export const AllergenCameraScanner: React.FC<AllergenCameraScannerProps> = ({
         <Button 
           variant="outline" 
           className="w-full" 
-          onClick={uploadImage} 
+          onClick={pickFromGallery} 
           disabled={isScanning}
         >
           <Image className="mr-2 h-4 w-4" />

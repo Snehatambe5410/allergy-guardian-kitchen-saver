@@ -1,5 +1,4 @@
-
-import { Toast } from "@/components/ui/use-toast";
+import { toast } from 'sonner';
 import { AllergenCheckResult, FoodItem } from "@/types";
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
