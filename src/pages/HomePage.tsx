@@ -1,8 +1,9 @@
+
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
 import { useAppContext } from '../context/AppContext';
-import { useIsMobile } from '../hooks/use-mobile';
+import { useIsMobile } from '../hooks/useIsMobile';
 import WelcomeScreen from '../components/onboarding/WelcomeScreen';
 
 const HomePage = () => {
