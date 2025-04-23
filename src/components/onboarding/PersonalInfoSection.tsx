@@ -72,13 +72,15 @@ const PersonalInfoSection = ({
       </div>
       
       <div>
-        <Label htmlFor="name">Your Name</Label>
+        <Label htmlFor="name" className="text-base">Your Name</Label>
         <Input
           type="text"
           id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Enter your name"
+          className="mt-1.5"
+          required
         />
       </div>
     </div>

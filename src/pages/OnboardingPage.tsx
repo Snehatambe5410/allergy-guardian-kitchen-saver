@@ -1,10 +1,11 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { ScrollArea } from '../components/ui/scroll-area';
 import { useAppContext } from '../context/AppContext';
 import { Allergy } from '../types';
+import { toast } from 'sonner';
 import PersonalInfoSection from '../components/onboarding/PersonalInfoSection';
 import DietaryPreferencesSection from '../components/onboarding/DietaryPreferencesSection';
 import AllergiesSection from '../components/onboarding/AllergiesSection';
@@ -111,26 +112,54 @@ const OnboardingPage = () => {
     setEmergencyContacts(updatedContacts);
   };
 
+  // Validate form before submission
+  const validateForm = () => {
+    if (!name.trim()) {
+      toast.error('Please enter your name');
+      return false;
+    }
+
+    // Validate allergies
+    const validAllergies = allergies.filter(a => a.name.trim());
+    if (validAllergies.length === 0) {
+      toast.error('Please add at least one allergy');
+      return false;
+    }
+
+    // Validate emergency contacts
+    const validContacts = emergencyContacts.filter(c => 
+      c.name.trim() && c.phone.trim()
+    );
+    if (validContacts.length === 0) {
+      toast.error('Please add at least one emergency contact');
+      return false;
+    }
+
+    return true;
+  };
+
   // Submit handler
   const handleSubmit = () => {
+    if (!validateForm()) return;
+
     // Convert the allergies to the correct format with IDs
     const formattedAllergies: Allergy[] = allergies
-      .filter(a => a.name.trim() !== '') // Filter out empty allergies
+      .filter(a => a.name.trim() !== '')
       .map(a => ({
-        id: crypto.randomUUID(), // Generate a unique ID
+        id: crypto.randomUUID(),
         name: a.name,
         severity: a.severity
       }));
     
     // Convert contacts to the correct format with IDs
     const formattedContacts = emergencyContacts
-      .filter(c => c.name.trim() !== '') // Filter out empty contacts
+      .filter(c => c.name.trim() !== '')
       .map(c => ({
-        id: crypto.randomUUID(), // Generate a unique ID
+        id: crypto.randomUUID(),
         name: c.name,
         relation: c.relation,
         phone: c.phone,
-        email: c.email || undefined // Make email optional
+        email: c.email || undefined
       }));
     
     const profileData = {
@@ -141,43 +170,46 @@ const OnboardingPage = () => {
     };
     
     updateUserProfile(profileData);
+    toast.success('Profile updated successfully!');
     navigate('/inventory');
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
-      <div className="relative py-3 sm:max-w-xl sm:mx-auto">
-        <Card className="divide-y divide-gray-200">
+    <div className="min-h-screen bg-gradient-to-b from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 py-6 px-4">
+      <div className="max-w-xl mx-auto">
+        <Card>
           <CardHeader className="px-5 py-4">
-            <CardTitle className="text-lg font-semibold">
+            <CardTitle className="text-xl font-semibold text-center text-green-800 dark:text-green-300">
               Welcome! Tell us about yourself.
             </CardTitle>
           </CardHeader>
-          <CardContent className="px-5 py-6">
-            <div className="space-y-4">
-              <PersonalInfoSection name={name} setName={setName} />
-              
-              <DietaryPreferencesSection 
-                dietaryPreferences={dietaryPreferences}
-                toggleDietaryPreference={toggleDietaryPreference}
-              />
-              
-              <AllergiesSection 
-                allergies={allergies}
-                updateAllergy={updateAllergy}
-                removeAllergy={removeAllergy}
-                addAllergy={addAllergy}
-              />
-              
-              <EmergencyContactsSection 
-                emergencyContacts={emergencyContacts}
-                updateContact={updateContact}
-                removeContact={removeContact}
-                addContact={addContact}
-              />
-            </div>
-          </CardContent>
-          <div className="px-5 py-4">
+          <ScrollArea className="h-[calc(100vh-200px)]">
+            <CardContent className="px-5 py-6">
+              <div className="space-y-8">
+                <PersonalInfoSection name={name} setName={setName} />
+                
+                <DietaryPreferencesSection 
+                  dietaryPreferences={dietaryPreferences}
+                  toggleDietaryPreference={toggleDietaryPreference}
+                />
+                
+                <AllergiesSection 
+                  allergies={allergies}
+                  updateAllergy={updateAllergy}
+                  removeAllergy={removeAllergy}
+                  addAllergy={addAllergy}
+                />
+                
+                <EmergencyContactsSection 
+                  emergencyContacts={emergencyContacts}
+                  updateContact={updateContact}
+                  removeContact={removeContact}
+                  addContact={addContact}
+                />
+              </div>
+            </CardContent>
+          </ScrollArea>
+          <div className="px-5 py-4 border-t">
             <Button className="w-full" onClick={handleSubmit}>
               Save & Continue
             </Button>
