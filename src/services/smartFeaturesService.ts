@@ -32,11 +32,24 @@ const NUTRITION_DATA: Record<string, { calories: number, protein: number, carbs:
   'Chicken': { calories: 165, protein: 31, carbs: 0, fat: 3.6 },
   'Beef': { calories: 250, protein: 26, carbs: 0, fat: 17 },
   'Apple': { calories: 52, protein: 0.3, carbs: 14, fat: 0.2 },
-  // Add more as needed
+};
+
+// Common ingredient aliases to improve allergy detection
+const INGREDIENT_ALLERGEN_MAPPING: Record<string, string[]> = {
+  'Milk': ['dairy', 'cream', 'butter', 'cheese', 'yogurt', 'lactose', 'whey', 'casein'],
+  'Eggs': ['egg white', 'egg yolk', 'meringue', 'mayonnaise', 'albumen'],
+  'Peanuts': ['groundnuts', 'arachis', 'peanut butter', 'peanut oil', 'monkey nuts'],
+  'Tree nuts': ['almond', 'hazelnut', 'walnut', 'cashew', 'pecan', 'pistachio', 'macadamia'],
+  'Wheat': ['flour', 'bread', 'pasta', 'couscous', 'bulgur', 'semolina', 'durum', 'farina'],
+  'Soy': ['soya', 'tofu', 'tempeh', 'miso', 'edamame', 'soy sauce', 'soy lecithin'],
+  'Fish': ['cod', 'salmon', 'tuna', 'haddock', 'mackerel', 'anchovies', 'fish sauce'],
+  'Shellfish': ['shrimp', 'crab', 'lobster', 'prawn', 'crayfish', 'clam', 'mussel', 'oyster'],
+  'Sesame': ['tahini', 'sesame oil', 'sesame seeds', 'gomashio', 'halvah'],
+  'Gluten': ['wheat', 'barley', 'rye', 'malt', 'brewer\'s yeast', 'triticale', 'seitan'],
 };
 
 /**
- * Checks if an ingredient is safe for a given profile
+ * Checks if an ingredient is safe for a given profile with improved detection
  * @param ingredientName The ingredient to check
  * @param profile The user or family member profile
  * @returns Boolean indicating if the ingredient is safe
@@ -51,39 +64,27 @@ export const isIngredientSafe = (
   
   const normalizedIngredient = ingredientName.toLowerCase().trim();
   
-  // Check if ingredient directly matches any allergen names
+  // Check against user's allergens
   for (const allergy of profile.allergies) {
-    if (normalizedIngredient.includes(allergy.name.toLowerCase())) {
+    const allergyName = allergy.name.toLowerCase();
+    
+    // Direct match
+    if (normalizedIngredient.includes(allergyName)) {
       return false;
     }
     
-    // Check against common alternative names for allergens
-    // This is a simple implementation - could be expanded with a more comprehensive database
-    if (allergy.name.toLowerCase() === 'milk' && 
-        (normalizedIngredient.includes('dairy') || 
-         normalizedIngredient.includes('lactose') || 
-         normalizedIngredient.includes('cream') || 
-         normalizedIngredient.includes('butter') || 
-         normalizedIngredient.includes('cheese'))) {
+    // Check against known allergen aliases
+    const allergenAliases = INGREDIENT_ALLERGEN_MAPPING[allergy.name] || [];
+    if (allergenAliases.some(alias => normalizedIngredient.includes(alias.toLowerCase()))) {
       return false;
     }
-    
-    if (allergy.name.toLowerCase() === 'wheat' && 
-        (normalizedIngredient.includes('gluten') || 
-         normalizedIngredient.includes('flour') || 
-         normalizedIngredient.includes('bread') || 
-         normalizedIngredient.includes('pasta'))) {
-      return false;
-    }
-    
-    // Additional allergen checks can be added here
   }
   
   return true;
 };
 
 /**
- * Checks if a food item is safe for the given profile
+ * Checks if a food item is safe for the given profile with enhanced detection
  * @param foodItem The food item to check
  * @param profile The user or family member profile
  * @returns A detailed result of the allergen check
@@ -102,26 +103,27 @@ export const checkIngredientSafety = (
   
   // Check if the ingredient name matches any allergies
   for (const allergy of profile.allergies) {
+    const allergyName = allergy.name.toLowerCase();
+    const normalizedIngredient = ingredientName.toLowerCase();
+    
     // Direct match on ingredient name
-    if (ingredientName.toLowerCase().includes(allergy.name.toLowerCase())) {
+    if (normalizedIngredient.includes(allergyName)) {
       triggeredAllergies.push(allergy);
       continue;
     }
     
     // Check allergens list if available
     if (allergensInFood.some(allergen => 
-        allergen.toLowerCase() === allergy.name.toLowerCase())) {
+        allergen.toLowerCase() === allergyName)) {
       triggeredAllergies.push(allergy);
       continue;
     }
     
-    // Check against common allergen terms
-    // This could be expanded with a more comprehensive database
-    if (allergy.name.toLowerCase() === 'milk' && 
-        (ingredientName.toLowerCase().includes('dairy') || 
-         ingredientName.toLowerCase().includes('lactose') ||
-         ingredientName.toLowerCase().includes('whey'))) {
+    // Check against known allergen aliases
+    const allergenAliases = INGREDIENT_ALLERGEN_MAPPING[allergy.name] || [];
+    if (allergenAliases.some(alias => normalizedIngredient.includes(alias.toLowerCase()))) {
       triggeredAllergies.push(allergy);
+      continue;
     }
   }
   
@@ -208,6 +210,50 @@ export const findIngredientSubstitutions = (
 };
 
 /**
+ * Determines whether a recipe is safe for a specific profile
+ * @param recipe The recipe to check
+ * @param profile The user or family member profile
+ * @returns Object with safety status and problem ingredients
+ */
+export const isRecipeSafeForProfile = (
+  recipe: Recipe,
+  profile: UserProfile | FamilyMember | null
+): { safe: boolean; problemIngredients: string[] } => {
+  if (!profile || !profile.allergies || profile.allergies.length === 0) {
+    return { safe: true, problemIngredients: [] };
+  }
+  
+  const problemIngredients: string[] = [];
+  
+  // First check recipe's declared allergens
+  const userAllergens = profile.allergies.map(a => a.name.toLowerCase());
+  const recipeAllergens = recipe.allergens.map(a => a.toLowerCase());
+  
+  const allergenMatches = recipeAllergens.filter(allergen => 
+    userAllergens.includes(allergen)
+  );
+  
+  if (allergenMatches.length > 0) {
+    return { 
+      safe: false, 
+      problemIngredients: allergenMatches.map(a => a.charAt(0).toUpperCase() + a.slice(1)) 
+    };
+  }
+  
+  // Then check each individual ingredient
+  for (const ingredient of recipe.ingredients) {
+    if (!isIngredientSafe(ingredient, profile)) {
+      problemIngredients.push(ingredient);
+    }
+  }
+  
+  return {
+    safe: problemIngredients.length === 0,
+    problemIngredients
+  };
+};
+
+/**
  * Suggests recipes based on the current inventory and user profile
  * @param inventory Available food items
  * @param recipes All available recipes
@@ -222,15 +268,13 @@ export const suggestRecipes = (
   if (!profile) return [];
 
   const suggestions: Recipe[] = [];
-  const userAllergies = profile.allergies.map(a => a.name.toLowerCase());
-  const userPreferences = profile.dietaryPreferences.map(p => p.toLowerCase());
-
-  // Filter safe recipes (no allergens)
+  
+  // First filter for safe recipes
   const safeRecipes = recipes.filter(recipe => {
-    const recipeAllergens = recipe.allergens.map(a => a.toLowerCase());
-    return !recipeAllergens.some(allergen => userAllergies.includes(allergen));
+    const safetyCheck = isRecipeSafeForProfile(recipe, profile);
+    return safetyCheck.safe;
   });
-
+  
   // Score recipes based on:
   // 1. Available ingredients
   // 2. Dietary preferences
@@ -244,22 +288,35 @@ export const suggestRecipes = (
     const matchingIngredients = recipeIngredients.filter(ing => 
       availableIngredients.some(available => ing.includes(available))
     );
+    
+    // Higher score for recipes with more available ingredients
     score += (matchingIngredients.length / recipeIngredients.length) * 5;
-
-    // Check dietary preferences
-    if (userPreferences.some(pref => 
-      recipe.name.toLowerCase().includes(pref) || 
-      recipe.description?.toLowerCase().includes(pref)
-    )) {
+    
+    // Bonus if we have most of the ingredients
+    if (matchingIngredients.length >= recipeIngredients.length * 0.75) {
       score += 3;
     }
 
+    // Check dietary preferences
+    if (profile.dietaryPreferences && profile.dietaryPreferences.length > 0) {
+      const userPreferences = profile.dietaryPreferences.map(p => p.toLowerCase());
+      if (userPreferences.some(pref => 
+        recipe.name.toLowerCase().includes(pref) || 
+        recipe.description?.toLowerCase().includes(pref) ||
+        (recipe.tags && recipe.tags.some(tag => tag.toLowerCase().includes(pref)))
+      )) {
+        score += 3;
+      }
+    }
+
     // Check favorite cuisines
-    if (profile.favoriteCuisines?.some(cuisine => 
-      recipe.name.toLowerCase().includes(cuisine.toLowerCase()) ||
-      recipe.description?.toLowerCase().includes(cuisine.toLowerCase())
-    )) {
-      score += 2;
+    if (profile.favoriteCuisines && profile.favoriteCuisines.length > 0) {
+      if (recipe.cuisineType && 
+          profile.favoriteCuisines.some(cuisine => 
+            cuisine.toLowerCase() === recipe.cuisineType?.toLowerCase()
+          )) {
+        score += 2;
+      }
     }
 
     return { recipe, score };
@@ -268,8 +325,7 @@ export const suggestRecipes = (
   // Sort by score and return top recipes
   return scoredRecipes
     .sort((a, b) => b.score - a.score)
-    .map(item => item.recipe)
-    .slice(0, 10);
+    .map(item => item.recipe);
 };
 
 /**
@@ -404,5 +460,6 @@ export default {
   findIngredientSubstitutions,
   suggestRecipes,
   calculateNutritionInfo,
-  generateGroceryList
+  generateGroceryList,
+  isRecipeSafeForProfile
 };

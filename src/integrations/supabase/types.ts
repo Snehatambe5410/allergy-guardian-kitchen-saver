@@ -196,46 +196,37 @@ export type Database = {
       }
       recipes: {
         Row: {
-          allergens: string[] | null
-          created_at: string | null
-          description: string | null
-          id: string
-          image_url: string | null
-          ingredients: string[] | null
-          instructions: string[] | null
-          is_favorite: boolean | null
-          name: string
-          preparation_time: number | null
-          servings: number | null
-          user_id: string
+          "Cleaned-Ingredients": string | null
+          Cuisine: string | null
+          "image-url": string | null
+          "Ingredient-count": number | null
+          TotalTimeInMins: number | null
+          TranslatedIngredients: string | null
+          TranslatedInstructions: string | null
+          TranslatedRecipeName: string | null
+          URL: string | null
         }
         Insert: {
-          allergens?: string[] | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          ingredients?: string[] | null
-          instructions?: string[] | null
-          is_favorite?: boolean | null
-          name: string
-          preparation_time?: number | null
-          servings?: number | null
-          user_id: string
+          "Cleaned-Ingredients"?: string | null
+          Cuisine?: string | null
+          "image-url"?: string | null
+          "Ingredient-count"?: number | null
+          TotalTimeInMins?: number | null
+          TranslatedIngredients?: string | null
+          TranslatedInstructions?: string | null
+          TranslatedRecipeName?: string | null
+          URL?: string | null
         }
         Update: {
-          allergens?: string[] | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          ingredients?: string[] | null
-          instructions?: string[] | null
-          is_favorite?: boolean | null
-          name?: string
-          preparation_time?: number | null
-          servings?: number | null
-          user_id?: string
+          "Cleaned-Ingredients"?: string | null
+          Cuisine?: string | null
+          "image-url"?: string | null
+          "Ingredient-count"?: number | null
+          TotalTimeInMins?: number | null
+          TranslatedIngredients?: string | null
+          TranslatedInstructions?: string | null
+          TranslatedRecipeName?: string | null
+          URL?: string | null
         }
         Relationships: []
       }

@@ -1,22 +1,23 @@
 
-import { 
-  Allergy, 
-  EmergencyContact, 
-  FamilyMember, 
-  FoodItem, 
-  Recipe, 
+import {
   UserProfile,
-  MealPlan
+  FamilyMember,
+  Recipe,
+  FoodItem,
+  Allergy,
+  MealPlan,
+  AllergenCheckResult
 } from '../types';
 
 export interface AppContextType {
+  // User profile state
   userProfile: UserProfile | null;
   isOnboarded: boolean;
   inventory: FoodItem[];
   familyMembers: FamilyMember[];
   recipes: Recipe[];
   loadingData: boolean;
-  activeProfile: FamilyMember | UserProfile | null;
+  activeProfile: UserProfile | FamilyMember | null;
   mealPlans: MealPlan[];
   
   // Profile management
@@ -32,12 +33,12 @@ export interface AppContextType {
   updateInventoryItem: (id: string, updates: Partial<FoodItem>) => Promise<void>;
   
   // Family profiles
-  addFamilyMember: (member: FamilyMember) => Promise<FamilyMember>;
-  updateFamilyMember: (id: string, updates: Partial<FamilyMember>) => Promise<void>;
-  removeFamilyMember: (id: string) => Promise<void>;
-  syncFamilyProfiles: () => Promise<void>;
-  importFamilyProfile: (profileData: Omit<FamilyMember, "id">) => Promise<FamilyMember>;
-  exportFamilyProfile: (id: string) => Promise<string>;
+  addFamilyMember: (member: FamilyMember) => void;
+  updateFamilyMember: (id: string, updates: Partial<FamilyMember>) => void;
+  removeFamilyMember: (id: string) => void;
+  syncFamilyProfiles: () => void;
+  importFamilyProfile: (profileData: Omit<FamilyMember, "id">) => void;
+  exportFamilyProfile: (id: string) => Omit<FamilyMember, "id">;
   
   // Recipe management
   addRecipe: (recipe: Recipe) => void;
@@ -51,11 +52,8 @@ export interface AppContextType {
   removeMealPlan: (id: string) => void;
   
   // Smart features
-  checkIngredientSafety: (ingredientName: string) => {
-    safe: boolean;
-    allergies: Allergy[];
-    alternatives?: string[];
-  };
+  checkIngredientSafety: (ingredientName: string) => AllergenCheckResult;
+  isRecipeSafeForProfile: (recipe: Recipe, profile: UserProfile | FamilyMember | null) => { safe: boolean; problemIngredients: string[] };
   suggestRecipes: () => Recipe[];
   generateGroceryList: (recipeIds: string[]) => FoodItem[];
 }

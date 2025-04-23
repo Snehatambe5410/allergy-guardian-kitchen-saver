@@ -281,6 +281,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     return smartFeaturesService.checkIngredientSafety(ingredientName, activeProfile);
   };
   
+  const isRecipeSafeForProfile = (recipe: Recipe, profile: UserProfile | FamilyMember | null): { safe: boolean, problemIngredients: string[] } => {
+    return smartFeaturesService.isRecipeSafeForProfile(recipe, profile);
+  };
+  
   const suggestRecipes = (): Recipe[] => {
     return smartFeaturesService.suggestRecipes(inventory, recipes, activeProfile);
   };
@@ -333,6 +337,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     
     // Smart features
     checkIngredientSafety,
+    isRecipeSafeForProfile,
     suggestRecipes,
     generateGroceryList
   };

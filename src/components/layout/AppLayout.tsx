@@ -19,10 +19,10 @@ const AppLayout = ({
   const isOnboarding = location.pathname === '/onboarding';
   
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
       {title && !isOnboarding && (
-        <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 shadow-sm py-4 px-6">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h1>
+        <header className="sticky top-0 z-30 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md py-4 px-6 border-b border-green-100">
+          <h1 className="text-xl font-bold text-green-800 dark:text-green-300">{title}</h1>
         </header>
       )}
       
