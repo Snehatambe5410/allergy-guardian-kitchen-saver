@@ -1,5 +1,5 @@
 
-import { CapacitorConfig } from '@capacitor/cli';
+import { CapacitorConfig } from '@capacitor/core';
 
 const config: CapacitorConfig = {
   appId: 'app.lovable.74de64cb76aa438e9d184ff06dc37fd5',
@@ -13,10 +13,15 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 2000,
       backgroundColor: "#10b981",
-      androidSplashResourceName: "splash",
-      androidScaleType: "CENTER_CROP",
       showSpinner: true,
       spinnerColor: "#ffffff",
+      androidSpinnerStyle: "large"
+    },
+    Camera: {
+      promptLabelHeader: "Allergen Scanner",
+      promptLabelCancel: "Cancel",
+      promptLabelPhoto: "From Photos",
+      promptLabelPicture: "Take Picture"
     }
   }
 };
