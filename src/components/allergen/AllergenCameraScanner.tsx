@@ -1,182 +1,82 @@
-import React, { useState } from 'react';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+
+import { Camera, CameraResultType, Photo } from '@capacitor/camera';
+import { useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '../ui/button';
-import { Camera as CameraIcon, Image, AlertCircle, Loader2 } from 'lucide-react';
-import { useToast } from '../../hooks/use-toast';
-import { AllergenCheckResult } from '@/types';
+import AllergenDetector from './AllergenDetector';
 
-interface AllergenCameraScannerProps {
-  isScanning: boolean;
-  setIsScanning: (scanning: boolean) => void;
-  onResultsFound: (result: AllergenCheckResult) => void;
-  checkIngredientSafety: (ingredientText: string) => AllergenCheckResult;
-}
+const AllergenCameraScanner = () => {
+  const [imagePath, setImagePath] = useState<string | null>(null);
+  const [isDetecting, setIsDetecting] = useState(false);
 
-export const AllergenCameraScanner: React.FC<AllergenCameraScannerProps> = ({
-  isScanning,
-  setIsScanning,
-  onResultsFound,
-  checkIngredientSafety
-}) => {
-  const { toast } = useToast();
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-  
-  const takePhoto = async () => {
+  const takePicture = async () => {
     try {
-      setIsScanning(true);
-      
-      const photo = await Camera.getPhoto({
-        source: CameraSource.Camera,
+      const image: Photo = await Camera.getPhoto({
         quality: 90,
         allowEditing: false,
-        resultType: 'uri'
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Camera
       });
-      
-      setPreviewImage(photo.uri || null);
-      
-      setTimeout(() => {
-        const detectedIngredients = simulateOCRExtraction();
-        const result = checkIngredientSafety(detectedIngredients);
-        
-        toast({
-          title: `Scan Complete`,
-          description: result.safe 
-            ? 'No allergens detected in the scanned item.' 
-            : `Warning: Allergens detected!`,
-          variant: result.safe ? 'default' : 'destructive',
-        });
-        
-        onResultsFound(result);
-        setIsScanning(false);
-      }, 2000);
-      
+
+      const path = image.webPath || image.path;
+      if (path) {
+        setImagePath(path);
+        setIsDetecting(true);
+      } else {
+        toast.error('Failed to capture image');
+      }
     } catch (error) {
-      console.error('Error taking photo', error);
-      toast({
-        title: 'Camera Error',
-        description: 'Could not access camera. Please check permissions.',
-        variant: 'destructive',
-      });
-      setIsScanning(false);
+      console.error('Camera error:', error);
+      toast.error('Failed to take picture');
     }
   };
-  
-  const pickFromGallery = async () => {
+
+  const selectFromGallery = async () => {
     try {
-      setIsScanning(true);
-      
-      const photo = await Camera.getPhoto({
-        source: CameraSource.Photos,
+      const image: Photo = await Camera.getPhoto({
         quality: 90,
         allowEditing: false,
-        resultType: 'uri'
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Photos
       });
-      
-      setPreviewImage(photo.uri || null);
-      
-      setTimeout(() => {
-        const detectedIngredients = simulateOCRExtraction();
-        const result = checkIngredientSafety(detectedIngredients);
-        
-        toast({
-          title: `Scan Complete`,
-          description: result.safe 
-            ? 'No allergens detected in the scanned item.' 
-            : `Warning: Allergens detected!`,
-          variant: result.safe ? 'default' : 'destructive',
-        });
-        
-        onResultsFound(result);
-        setIsScanning(false);
-      }, 2000);
-      
+
+      const path = image.webPath || image.path;
+      if (path) {
+        setImagePath(path);
+        setIsDetecting(true);
+      } else {
+        toast.error('Failed to select image');
+      }
     } catch (error) {
-      console.error('Error picking photo', error);
-      toast({
-        title: 'Image Error',
-        description: 'Could not access photos. Please check permissions.',
-        variant: 'destructive',
-      });
-      setIsScanning(false);
+      console.error('Gallery selection error:', error);
+      toast.error('Failed to select picture');
     }
   };
-  
-  const simulateOCRExtraction = (): string => {
-    const ingredients = [
-      "Milk, Sugar, Cocoa Butter, Chocolate, Soy Lecithin, Vanilla",
-      "Wheat Flour, Water, Vegetable Oil, Salt, Yeast",
-      "Peanuts, Sugar, Salt, Hydrogenated Vegetable Oil",
-      "Almonds, Cashews, Walnuts, Peanuts, Salt, Vegetable Oil",
-      "Eggs, Milk, Wheat Flour, Sugar, Baking Powder, Salt"
-    ];
-    
-    return ingredients[Math.floor(Math.random() * ingredients.length)];
+
+  const resetDetection = () => {
+    setImagePath(null);
+    setIsDetecting(false);
   };
-  
+
   return (
     <div className="space-y-4">
-      {previewImage ? (
-        <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
-          <img 
-            src={previewImage} 
-            alt="Scanned item" 
-            className="w-full h-full object-cover"
-          />
-          {isScanning && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-              <div className="flex flex-col items-center">
-                <Loader2 size={48} className="animate-spin text-white mb-2" />
-                <p className="text-sm text-white">Processing image...</p>
-              </div>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
-          {isScanning ? (
-            <div className="flex flex-col items-center">
-              <Loader2 size={48} className="animate-spin text-gray-400 mb-2" />
-              <p className="text-sm text-gray-500">Initializing camera...</p>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center">
-              <CameraIcon size={48} className="text-gray-400 mb-2" />
-              <p className="text-sm text-gray-500">Ready to scan</p>
-            </div>
-          )}
+      {!imagePath && (
+        <div className="flex space-x-4">
+          <Button onClick={takePicture}>Take Photo</Button>
+          <Button variant="outline" onClick={selectFromGallery}>
+            Select from Gallery
+          </Button>
         </div>
       )}
-      
-      <div className="grid grid-cols-2 gap-3">
-        <Button 
-          variant={previewImage ? "outline" : "default"}
-          className="w-full" 
-          onClick={takePhoto} 
-          disabled={isScanning}
-        >
-          <CameraIcon className="mr-2 h-4 w-4" />
-          {previewImage ? 'Rescan' : 'Capture Image'}
-        </Button>
-        
-        <Button 
-          variant="outline" 
-          className="w-full" 
-          onClick={pickFromGallery} 
-          disabled={isScanning}
-        >
-          <Image className="mr-2 h-4 w-4" />
-          Upload Image
-        </Button>
-      </div>
-      
-      {previewImage && !isScanning && (
-        <div className="pt-2">
-          <p className="text-sm text-muted-foreground flex items-center">
-            <AlertCircle className="h-4 w-4 mr-1" />
-            Tap Rescan to try again with a clearer image
-          </p>
-        </div>
+
+      {imagePath && isDetecting && (
+        <AllergenDetector 
+          imagePath={imagePath} 
+          onDetectionComplete={resetDetection} 
+        />
       )}
     </div>
   );
 };
+
+export default AllergenCameraScanner;
