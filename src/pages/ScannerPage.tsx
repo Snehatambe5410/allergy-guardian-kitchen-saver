@@ -1,20 +1,18 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
 import { AlertCircle } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
 import { Card, CardContent } from '../components/ui/card';
-import { AllergenDetector } from '../components/allergen/AllergenDetector';
-import { AllergenCameraScanner } from '../components/allergen/AllergenCameraScanner';
+import AllergenDetector from '../components/allergen/AllergenDetector';
+import AllergenCameraScanner from '../components/allergen/AllergenCameraScanner';
 import { Button } from '../components/ui/button';
-import { useToast } from '../hooks/use-toast';
+import { toast } from 'sonner';
 import { useAppContext } from '../context/AppContext';
 import { AllergenCheckResult } from '../types';
 
 const ScannerPage = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { checkIngredientSafety, activeProfile } = useAppContext();
   const [activeTab, setActiveTab] = useState('text');
   const [scanResult, setScanResult] = useState<AllergenCheckResult | null>(null);

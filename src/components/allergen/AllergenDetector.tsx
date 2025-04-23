@@ -10,11 +10,13 @@ import { Badge } from '../ui/badge';
 
 interface AllergenDetectorProps {
   onResultsFound?: (results: AllergenCheckResult) => void;
+  onDetectionComplete?: () => void;
   compact?: boolean;
 }
 
 export const AllergenDetector: React.FC<AllergenDetectorProps> = ({ 
   onResultsFound,
+  onDetectionComplete,
   compact = false
 }) => {
   const { checkIngredientSafety, activeProfile } = useAppContext();
@@ -34,6 +36,14 @@ export const AllergenDetector: React.FC<AllergenDetectorProps> = ({
         onResultsFound(checkResults);
       }
       setIsChecking(false);
+      
+      // Call onDetectionComplete if provided
+      if (onDetectionComplete) {
+        // Small delay to show results before resetting
+        setTimeout(() => {
+          onDetectionComplete();
+        }, 3000);
+      }
     }, 500);
   };
   

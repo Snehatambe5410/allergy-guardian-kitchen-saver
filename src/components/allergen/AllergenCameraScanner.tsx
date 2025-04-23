@@ -1,11 +1,23 @@
 
-import { Camera, CameraResultType, Photo } from '@capacitor/camera';
+import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import AllergenDetector from './AllergenDetector';
 
-const AllergenCameraScanner = () => {
+interface AllergenCameraScannerProps {
+  isScanning?: boolean;
+  setIsScanning?: (scanning: boolean) => void;
+  onResultsFound?: (results: any) => void;
+  checkIngredientSafety?: (ingredient: string) => any;
+}
+
+const AllergenCameraScanner = ({
+  isScanning,
+  setIsScanning,
+  onResultsFound,
+  checkIngredientSafety,
+}: AllergenCameraScannerProps) => {
   const [imagePath, setImagePath] = useState<string | null>(null);
   const [isDetecting, setIsDetecting] = useState(false);
 
@@ -22,6 +34,9 @@ const AllergenCameraScanner = () => {
       if (path) {
         setImagePath(path);
         setIsDetecting(true);
+        if (setIsScanning) {
+          setIsScanning(true);
+        }
       } else {
         toast.error('Failed to capture image');
       }
@@ -44,6 +59,9 @@ const AllergenCameraScanner = () => {
       if (path) {
         setImagePath(path);
         setIsDetecting(true);
+        if (setIsScanning) {
+          setIsScanning(true);
+        }
       } else {
         toast.error('Failed to select image');
       }
@@ -56,6 +74,9 @@ const AllergenCameraScanner = () => {
   const resetDetection = () => {
     setImagePath(null);
     setIsDetecting(false);
+    if (setIsScanning) {
+      setIsScanning(false);
+    }
   };
 
   return (
@@ -70,10 +91,13 @@ const AllergenCameraScanner = () => {
       )}
 
       {imagePath && isDetecting && (
-        <AllergenDetector 
-          imagePath={imagePath} 
-          onDetectionComplete={resetDetection} 
-        />
+        <div className="mt-4">
+          <img src={imagePath} alt="Captured" className="w-full rounded-md mb-4" />
+          <AllergenDetector 
+            onResultsFound={onResultsFound}
+            onDetectionComplete={resetDetection} 
+          />
+        </div>
       )}
     </div>
   );
