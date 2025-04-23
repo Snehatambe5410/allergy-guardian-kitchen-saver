@@ -3,6 +3,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { Recipe } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
 
+// Define the actual types that match our database schema
+interface DatabaseRecipe {
+  id: string;
+  user_id: string;
+  name: string;
+  description?: string;
+  ingredients: string[];
+  instructions: string[];
+  allergens: string[];
+  preparation_time: number;
+  servings: number;
+  is_favorite: boolean;
+  image_url?: string;
+  cuisine_type?: string;
+  meal_type?: string;
+  created_at: string;
+}
+
 export const fetchUserRecipes = async (): Promise<Recipe[]> => {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   
@@ -26,7 +44,8 @@ export const fetchUserRecipes = async (): Promise<Recipe[]> => {
     throw error;
   }
 
-  return data.map((item) => ({
+  // Convert database format to app format
+  return (data as DatabaseRecipe[]).map((item) => ({
     id: item.id,
     name: item.name,
     description: item.description || "",
@@ -37,6 +56,8 @@ export const fetchUserRecipes = async (): Promise<Recipe[]> => {
     servings: item.servings || 2,
     isFavorite: item.is_favorite || false,
     image: item.image_url,
+    cuisineType: item.cuisine_type,
+    mealType: item.meal_type,
   }));
 };
 
@@ -54,21 +75,26 @@ export const addRecipe = async (recipe: Omit<Recipe, "id">): Promise<Recipe> => 
 
   const newId = uuidv4();
   
+  // Convert app format to database format
+  const dbRecipe = {
+    id: newId,
+    user_id: userData.user.id,
+    name: recipe.name,
+    description: recipe.description,
+    ingredients: recipe.ingredients,
+    instructions: recipe.instructions,
+    allergens: recipe.allergens,
+    preparation_time: recipe.preparationTime,
+    servings: recipe.servings,
+    is_favorite: recipe.isFavorite,
+    image_url: recipe.image,
+    cuisine_type: recipe.cuisineType,
+    meal_type: recipe.mealType,
+  };
+
   const { data, error } = await supabase
     .from("recipes")
-    .insert({
-      id: newId,
-      user_id: userData.user.id,
-      name: recipe.name,
-      description: recipe.description,
-      ingredients: recipe.ingredients,
-      instructions: recipe.instructions,
-      allergens: recipe.allergens,
-      preparation_time: recipe.preparationTime,
-      servings: recipe.servings,
-      is_favorite: recipe.isFavorite,
-      image_url: recipe.image,
-    })
+    .insert(dbRecipe)
     .select()
     .single();
 
@@ -77,6 +103,7 @@ export const addRecipe = async (recipe: Omit<Recipe, "id">): Promise<Recipe> => 
     throw error;
   }
 
+  // Convert database response back to app format
   return {
     id: data.id,
     name: data.name,
@@ -88,23 +115,31 @@ export const addRecipe = async (recipe: Omit<Recipe, "id">): Promise<Recipe> => 
     servings: data.servings || 2,
     isFavorite: data.is_favorite || false,
     image: data.image_url,
+    cuisineType: data.cuisine_type,
+    mealType: data.meal_type,
   };
 };
 
 export const updateRecipe = async (id: string, updates: Partial<Recipe>): Promise<void> => {
+  // Convert app format to database format
+  const dbUpdates: any = {};
+  
+  // Only add properties that are actually in the updates object
+  if ('name' in updates) dbUpdates.name = updates.name;
+  if ('description' in updates) dbUpdates.description = updates.description;
+  if ('ingredients' in updates) dbUpdates.ingredients = updates.ingredients;
+  if ('instructions' in updates) dbUpdates.instructions = updates.instructions;
+  if ('allergens' in updates) dbUpdates.allergens = updates.allergens;
+  if ('preparationTime' in updates) dbUpdates.preparation_time = updates.preparationTime;
+  if ('servings' in updates) dbUpdates.servings = updates.servings;
+  if ('isFavorite' in updates) dbUpdates.is_favorite = updates.isFavorite;
+  if ('image' in updates) dbUpdates.image_url = updates.image;
+  if ('cuisineType' in updates) dbUpdates.cuisine_type = updates.cuisineType;
+  if ('mealType' in updates) dbUpdates.meal_type = updates.mealType;
+
   const { error } = await supabase
     .from("recipes")
-    .update({
-      name: updates.name,
-      description: updates.description,
-      ingredients: updates.ingredients,
-      instructions: updates.instructions,
-      allergens: updates.allergens,
-      preparation_time: updates.preparationTime,
-      servings: updates.servings,
-      is_favorite: updates.isFavorite,
-      image_url: updates.image,
-    })
+    .update(dbUpdates)
     .eq("id", id);
 
   if (error) {

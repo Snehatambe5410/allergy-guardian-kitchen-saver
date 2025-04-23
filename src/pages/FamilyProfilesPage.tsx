@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { PlusCircle, Edit, Trash2, AlertCircle, Share2, Upload, RefreshCw } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -51,7 +50,6 @@ const FamilyProfilesPage = () => {
   const [selectedProfileToExport, setSelectedProfileToExport] = useState<string>("");
   const [isSyncing, setIsSyncing] = useState(false);
   
-  // Form state
   const [formData, setFormData] = useState<{
     name: string;
     relation: string;
@@ -70,7 +68,6 @@ const FamilyProfilesPage = () => {
     notes: '',
   });
   
-  // Dietary options
   const dietaryOptions = [
     'Vegetarian',
     'Vegan',
@@ -114,8 +111,8 @@ const FamilyProfilesPage = () => {
     }
     
     try {
-      const data = await exportFamilyProfile(selectedProfileToExport);
-      setExportProfileData(data);
+      const data = exportFamilyProfile(selectedProfileToExport);
+      setExportProfileData(JSON.stringify(data));
       toast({
         title: "Profile exported",
         description: "You can now copy the profile data."
@@ -258,7 +255,6 @@ const FamilyProfilesPage = () => {
       return;
     }
     
-    // Format allergies with IDs
     const allergies: Allergy[] = formData.allergies
       .filter(a => a.name.trim() !== '')
       .map(a => ({
@@ -509,7 +505,6 @@ const FamilyProfilesPage = () => {
           </TabsContent>
         </Tabs>
         
-        {/* Add/Edit Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="max-w-md max-h-screen overflow-y-auto">
             <DialogHeader>
@@ -641,7 +636,6 @@ const FamilyProfilesPage = () => {
           </DialogContent>
         </Dialog>
         
-        {/* Sync Dialog */}
         <Dialog open={isSyncDialogOpen} onOpenChange={setIsSyncDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
@@ -674,7 +668,6 @@ const FamilyProfilesPage = () => {
           </DialogContent>
         </Dialog>
         
-        {/* Export Dialog */}
         <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
@@ -714,7 +707,6 @@ const FamilyProfilesPage = () => {
           </DialogContent>
         </Dialog>
         
-        {/* Import Dialog */}
         <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>

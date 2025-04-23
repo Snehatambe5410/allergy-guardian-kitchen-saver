@@ -83,41 +83,35 @@ export const createFamilyActions = (
     }
   };
 
-  // Export a family profile as a JSON string
-  const exportFamilyProfile = async (id: string): Promise<string> => {
-    try {
-      // Get current family members array
-      let currentMembers: FamilyMember[] = [];
-      setFamilyMembers(prev => {
-        currentMembers = [...prev];
-        return prev;
-      });
-      
-      // Find the member in the state
-      const member = currentMembers.find(m => m.id === id);
-      
-      if (!member) {
-        throw new Error("Family member not found");
-      }
-      
-      // Create a shareable version (removing internal IDs)
-      const shareableData = {
-        name: member.name,
-        relation: member.relation,
-        dietaryPreferences: member.dietaryPreferences,
-        allergies: member.allergies.map(a => ({
-          name: a.name,
-          severity: a.severity,
-          notes: a.notes
-        })),
-        notes: member.notes
-      };
-      
-      return JSON.stringify(shareableData);
-    } catch (error) {
-      console.error("Error exporting family profile:", error);
-      throw error;
+  // Export a family profile as data object (changed from string to object)
+  const exportFamilyProfile = (id: string): Omit<FamilyMember, "id"> => {
+    // Get current family members array
+    let currentMembers: FamilyMember[] = [];
+    setFamilyMembers(prev => {
+      currentMembers = [...prev];
+      return prev;
+    });
+    
+    // Find the member in the state
+    const member = currentMembers.find(m => m.id === id);
+    
+    if (!member) {
+      throw new Error("Family member not found");
     }
+    
+    // Create a shareable version (removing internal IDs)
+    return {
+      name: member.name,
+      relation: member.relation,
+      dietaryPreferences: member.dietaryPreferences,
+      allergies: member.allergies.map(a => ({
+        id: a.id,
+        name: a.name,
+        severity: a.severity,
+        notes: a.notes
+      })),
+      notes: member.notes
+    };
   };
 
   return {

@@ -21,24 +21,26 @@ export const importSampleRecipeToUserCollection = async (recipe: Recipe): Promis
       };
     }
 
-    // Otherwise, save to Supabase
+    // Convert from app format to database format
+    const dbRecipe = {
+      user_id: userData.user.id,
+      name: recipe.name,
+      description: recipe.description,
+      ingredients: recipe.ingredients,
+      instructions: recipe.instructions,
+      allergens: recipe.allergens,
+      preparation_time: recipe.preparationTime,
+      servings: recipe.servings,
+      is_favorite: recipe.isFavorite,
+      image_url: recipe.image,
+      cuisine_type: recipe.cuisineType,
+      meal_type: recipe.mealType,
+    };
+
+    // Save to Supabase
     const { data, error } = await supabase
       .from("recipes")
-      .insert({
-        user_id: userData.user.id,
-        name: recipe.name,
-        description: recipe.description,
-        ingredients: recipe.ingredients,
-        instructions: recipe.instructions,
-        allergens: recipe.allergens,
-        preparation_time: recipe.preparationTime,
-        servings: recipe.servings,
-        is_favorite: recipe.isFavorite,
-        image_url: recipe.image,
-        // Add these properties to the insert operation if they exist in the recipe
-        ...(recipe.cuisineType && { cuisine_type: recipe.cuisineType }),
-        ...(recipe.mealType && { meal_type: recipe.mealType }),
-      })
+      .insert(dbRecipe)
       .select()
       .single();
 
@@ -47,27 +49,20 @@ export const importSampleRecipeToUserCollection = async (recipe: Recipe): Promis
       throw error;
     }
 
-    // Convert Supabase format to app format
-    // Use type assertion to tell TypeScript that additional properties might exist
-    const recipeData = data as typeof data & { 
-      cuisine_type?: string; 
-      meal_type?: string;
-    };
-
+    // Convert from database format back to app format
     return {
-      id: recipeData.id,
-      name: recipeData.name,
-      description: recipeData.description || "",
-      ingredients: recipeData.ingredients || [],
-      instructions: recipeData.instructions || [],
-      allergens: recipeData.allergens || [],
-      preparationTime: recipeData.preparation_time || 0,
-      servings: recipeData.servings || 2,
-      isFavorite: recipeData.is_favorite || false,
-      image: recipeData.image_url,
-      // Safely extract these properties if they exist in the database response
-      cuisineType: recipeData.cuisine_type || undefined,
-      mealType: recipeData.meal_type || undefined,
+      id: data.id,
+      name: data.name,
+      description: data.description || "",
+      ingredients: data.ingredients || [],
+      instructions: data.instructions || [],
+      allergens: data.allergens || [],
+      preparationTime: data.preparation_time || 0,
+      servings: data.servings || 2,
+      isFavorite: data.is_favorite || false,
+      image: data.image_url,
+      cuisineType: data.cuisine_type,
+      mealType: data.meal_type,
     };
   } catch (error) {
     console.error("Error in importSampleRecipeToUserCollection:", error);
