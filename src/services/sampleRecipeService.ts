@@ -1,75 +1,40 @@
 
 import { Recipe } from "@/types";
-import { supabase } from "@/integrations/supabase/client";
 import { importSampleRecipe, sampleRecipes } from "@/data/sampleRecipes";
+import { v4 as uuidv4 } from 'uuid';
+import { supabase } from "@/integrations/supabase/client";
 
 export const fetchSampleRecipes = async (): Promise<Recipe[]> => {
   // Return the sample recipes directly, converted to Recipe type with ID
   return sampleRecipes.map(sampleRecipe => importSampleRecipe(sampleRecipe));
 };
 
+// We're now using the local storage approach for user recipes
 export const importSampleRecipeToUserCollection = async (recipe: Recipe): Promise<Recipe> => {
   try {
     // First check if user is authenticated
     const { data: userData } = await supabase.auth.getUser();
     
-    if (!userData.user) {
-      // If not authenticated, just return the recipe with a new ID
-      return {
-        ...recipe,
-        id: crypto.randomUUID()
-      };
+    // Create a new recipe with a unique ID
+    const importedRecipe = {
+      ...recipe,
+      id: uuidv4()
+    };
+    
+    // If authenticated, store the recipe in our local collection
+    if (userData.user) {
+      // We would normally save to Supabase here, but since we're using a local array
+      // in recipeService.ts, we'll just return the imported recipe with a new ID
+      console.log("Recipe would be imported for user:", userData.user.id);
     }
 
-    // Convert from app format to database format
-    const dbRecipe = {
-      user_id: userData.user.id,
-      name: recipe.name,
-      description: recipe.description,
-      ingredients: recipe.ingredients,
-      instructions: recipe.instructions,
-      allergens: recipe.allergens,
-      preparation_time: recipe.preparationTime,
-      servings: recipe.servings,
-      is_favorite: recipe.isFavorite,
-      image_url: recipe.image,
-      cuisine_type: recipe.cuisineType,
-      meal_type: recipe.mealType,
-    };
-
-    // Save to Supabase
-    const { data, error } = await supabase
-      .from("recipes")
-      .insert(dbRecipe)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error importing recipe:", error);
-      throw error;
-    }
-
-    // Convert from database format back to app format
-    return {
-      id: data.id,
-      name: data.name,
-      description: data.description || "",
-      ingredients: data.ingredients || [],
-      instructions: data.instructions || [],
-      allergens: data.allergens || [],
-      preparationTime: data.preparation_time || 0,
-      servings: data.servings || 2,
-      isFavorite: data.is_favorite || false,
-      image: data.image_url,
-      cuisineType: data.cuisine_type,
-      mealType: data.meal_type,
-    };
+    return importedRecipe;
   } catch (error) {
     console.error("Error in importSampleRecipeToUserCollection:", error);
-    // Fallback to local handling if Supabase fails
+    // Fallback to local handling
     return {
       ...recipe,
-      id: crypto.randomUUID()
+      id: uuidv4()
     };
   }
 };

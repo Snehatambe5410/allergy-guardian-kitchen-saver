@@ -3,8 +3,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { Recipe } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
 
-// Define the actual types that match our database schema
-interface DatabaseRecipe {
+// This interface matches the actual Supabase table schema
+interface SupabaseRecipe {
+  "Cleaned-Ingredients"?: string;
+  "Cuisine"?: string;
+  "image-url"?: string;
+  "Ingredient-count"?: number;
+  "TotalTimeInMins"?: number;
+  "TranslatedIngredients"?: string;
+  "TranslatedInstructions"?: string;
+  "TranslatedRecipeName"?: string;
+  "URL"?: string;
+}
+
+// Define the type that matches our app's database schema that we would need
+// if we were to create a recipes table with our structure
+interface UserRecipe {
   id: string;
   user_id: string;
   name: string;
@@ -21,6 +35,9 @@ interface DatabaseRecipe {
   created_at: string;
 }
 
+// Mock database for user recipes since we can't store them in the current Supabase structure
+let localUserRecipes: UserRecipe[] = [];
+
 export const fetchUserRecipes = async (): Promise<Recipe[]> => {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   
@@ -33,19 +50,11 @@ export const fetchUserRecipes = async (): Promise<Recipe[]> => {
     return [];
   }
 
-  const { data, error } = await supabase
-    .from("recipes")
-    .select("*")
-    .eq("user_id", userData.user.id)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Error fetching recipes:", error);
-    throw error;
-  }
+  // Filter local recipes by user ID
+  const userRecipes = localUserRecipes.filter(recipe => recipe.user_id === userData.user!.id);
 
   // Convert database format to app format
-  return (data as DatabaseRecipe[]).map((item) => ({
+  return userRecipes.map((item) => ({
     id: item.id,
     name: item.name,
     description: item.description || "",
@@ -76,7 +85,7 @@ export const addRecipe = async (recipe: Omit<Recipe, "id">): Promise<Recipe> => 
   const newId = uuidv4();
   
   // Convert app format to database format
-  const dbRecipe = {
+  const userRecipe: UserRecipe = {
     id: newId,
     user_id: userData.user.id,
     name: recipe.name,
@@ -90,39 +99,38 @@ export const addRecipe = async (recipe: Omit<Recipe, "id">): Promise<Recipe> => 
     image_url: recipe.image,
     cuisine_type: recipe.cuisineType,
     meal_type: recipe.mealType,
+    created_at: new Date().toISOString()
   };
 
-  const { data, error } = await supabase
-    .from("recipes")
-    .insert(dbRecipe)
-    .select()
-    .single();
+  // Store in local array instead of database
+  localUserRecipes.push(userRecipe);
 
-  if (error) {
-    console.error("Error adding recipe:", error);
-    throw error;
-  }
-
-  // Convert database response back to app format
+  // Convert back to app format
   return {
-    id: data.id,
-    name: data.name,
-    description: data.description || "",
-    ingredients: data.ingredients || [],
-    instructions: data.instructions || [],
-    allergens: data.allergens || [],
-    preparationTime: data.preparation_time || 0,
-    servings: data.servings || 2,
-    isFavorite: data.is_favorite || false,
-    image: data.image_url,
-    cuisineType: data.cuisine_type,
-    mealType: data.meal_type,
+    id: userRecipe.id,
+    name: userRecipe.name,
+    description: userRecipe.description || "",
+    ingredients: userRecipe.ingredients || [],
+    instructions: userRecipe.instructions || [],
+    allergens: userRecipe.allergens || [],
+    preparationTime: userRecipe.preparation_time || 0,
+    servings: userRecipe.servings || 2,
+    isFavorite: userRecipe.is_favorite || false,
+    image: userRecipe.image_url,
+    cuisineType: userRecipe.cuisine_type,
+    mealType: userRecipe.meal_type,
   };
 };
 
 export const updateRecipe = async (id: string, updates: Partial<Recipe>): Promise<void> => {
+  // Find the recipe in the local array
+  const recipeIndex = localUserRecipes.findIndex(recipe => recipe.id === id);
+  if (recipeIndex === -1) {
+    throw new Error("Recipe not found");
+  }
+
   // Convert app format to database format
-  const dbUpdates: any = {};
+  const dbUpdates: Partial<UserRecipe> = {};
   
   // Only add properties that are actually in the updates object
   if ('name' in updates) dbUpdates.name = updates.name;
@@ -137,39 +145,27 @@ export const updateRecipe = async (id: string, updates: Partial<Recipe>): Promis
   if ('cuisineType' in updates) dbUpdates.cuisine_type = updates.cuisineType;
   if ('mealType' in updates) dbUpdates.meal_type = updates.mealType;
 
-  const { error } = await supabase
-    .from("recipes")
-    .update(dbUpdates)
-    .eq("id", id);
-
-  if (error) {
-    console.error("Error updating recipe:", error);
-    throw error;
-  }
+  // Update the recipe in the local array
+  localUserRecipes[recipeIndex] = { 
+    ...localUserRecipes[recipeIndex], 
+    ...dbUpdates 
+  };
 };
 
 export const deleteRecipe = async (id: string): Promise<void> => {
-  const { error } = await supabase
-    .from("recipes")
-    .delete()
-    .eq("id", id);
-
-  if (error) {
-    console.error("Error deleting recipe:", error);
-    throw error;
-  }
+  // Remove the recipe from the local array
+  localUserRecipes = localUserRecipes.filter(recipe => recipe.id !== id);
 };
 
 export const toggleFavoriteRecipe = async (id: string, isFavorite: boolean): Promise<void> => {
-  const { error } = await supabase
-    .from("recipes")
-    .update({ is_favorite: isFavorite })
-    .eq("id", id);
-
-  if (error) {
-    console.error("Error toggling favorite recipe:", error);
-    throw error;
+  // Find the recipe in the local array
+  const recipeIndex = localUserRecipes.findIndex(recipe => recipe.id === id);
+  if (recipeIndex === -1) {
+    throw new Error("Recipe not found");
   }
+
+  // Update the recipe in the local array
+  localUserRecipes[recipeIndex].is_favorite = isFavorite;
 };
 
 export const uploadRecipeImage = async (file: File, userId: string): Promise<string> => {

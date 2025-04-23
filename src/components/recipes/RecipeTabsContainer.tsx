@@ -28,11 +28,21 @@ const RecipeTabsContainer = ({
 }: RecipeTabsContainerProps) => {
   return (
     <ScrollArea className="h-[calc(100vh-120px)]">
-      <div className="p-4 max-w-7xl mx-auto">
+      <div className="p-4 max-w-7xl mx-auto bg-gradient-to-b from-green-50/50 to-transparent rounded-lg">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-2 w-full mb-6">
-            <TabsTrigger value="my-recipes">My Recipes</TabsTrigger>
-            <TabsTrigger value="sample-recipes">Sample Recipes</TabsTrigger>
+          <TabsList className="grid grid-cols-2 w-full mb-6 bg-green-100/50">
+            <TabsTrigger 
+              value="my-recipes" 
+              className="data-[state=active]:bg-green-600 data-[state=active]:text-white"
+            >
+              My Recipes
+            </TabsTrigger>
+            <TabsTrigger 
+              value="sample-recipes" 
+              className="data-[state=active]:bg-green-600 data-[state=active]:text-white"
+            >
+              Sample Recipes
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="my-recipes" className="mt-0">

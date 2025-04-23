@@ -2,7 +2,6 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Recipe } from '@/types';
 import RecipeForm from './RecipeForm';
-import { useToast } from '@/hooks/use-toast';
 
 interface RecipeDialogProps {
   isOpen: boolean;
@@ -43,12 +42,12 @@ const RecipeDialog = ({
 }: RecipeDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto border-green-200">
+        <DialogHeader className="bg-green-50 p-4 -mx-4 -mt-4 mb-4 rounded-t-lg">
+          <DialogTitle className="text-green-800">
             {isEditMode ? 'Edit Recipe' : 'Add New Recipe'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-green-700">
             {isEditMode 
               ? 'Update recipe details and instructions.' 
               : 'Fill in the details for your new recipe.'}
