@@ -1,14 +1,14 @@
 
 import { Recipe } from '@/types';
-import { Utensils } from 'lucide-react';
+import { Utensils, Check, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
 import RecipeCard from './RecipeCard';
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
-import { Check, AlertTriangle } from 'lucide-react';
+import { Badge } from '../ui/badge';
 
 interface RecipeGridProps {
   recipes: Recipe[];
-  getRecipeSafety: (recipe: Recipe) => { safe: boolean };
+  getRecipeSafety: (recipe: Recipe) => { safe: boolean; problemIngredients?: string[] };
   isSafeForAllFamily: (recipe: Recipe) => boolean;
   activeProfileName?: string;
   onRecipeSelect?: (recipe: Recipe) => void;
@@ -49,7 +49,7 @@ const RecipeGrid = ({
           return (
             <div 
               key={recipe.id} 
-              className="transition-all duration-200 hover:-translate-y-1 relative"
+              className="transition-all duration-200 hover:-translate-y-1 relative group"
               onClick={() => onRecipeSelect && onRecipeSelect(recipe)}
             >
               <TooltipProvider>
@@ -57,23 +57,44 @@ const RecipeGrid = ({
                   <TooltipTrigger asChild>
                     <div className="absolute top-2 right-2 z-10">
                       {safetyCheck.safe ? (
-                        <div className={`rounded-full p-1 ${safeForAllFamily ? 'bg-green-500' : 'bg-amber-400'}`}>
-                          <Check className="h-4 w-4 text-white" />
+                        <div className={`rounded-full p-1.5 ${safeForAllFamily ? 'bg-green-500' : 'bg-amber-400'} shadow-md transition-transform duration-200 group-hover:scale-110`}>
+                          {safeForAllFamily ? 
+                            <ShieldCheck className="h-5 w-5 text-white" /> :
+                            <Check className="h-5 w-5 text-white" />
+                          }
                         </div>
                       ) : (
-                        <div className="rounded-full p-1 bg-red-500">
-                          <AlertTriangle className="h-4 w-4 text-white" />
+                        <div className="rounded-full p-1.5 bg-red-500 shadow-md transition-transform duration-200 group-hover:scale-110">
+                          <AlertTriangle className="h-5 w-5 text-white" />
                         </div>
                       )}
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent side="left" className="max-w-xs">
                     {safetyCheck.safe ? (
                       safeForAllFamily ? 
-                        "Safe for everyone" : 
-                        `Safe for ${activeProfileName || 'you'}, but not for all family members`
+                        <div className="flex flex-col gap-1">
+                          <span className="font-medium text-green-700">Safe for everyone</span>
+                          <span className="text-xs">This recipe is safe for all family members</span>
+                        </div> : 
+                        <div className="flex flex-col gap-1">
+                          <span className="font-medium text-amber-600">Safe for {activeProfileName || 'you'}</span>
+                          <span className="text-xs">But not for all family members</span>
+                        </div>
                     ) : (
-                      `Not safe for ${activeProfileName || 'you'}: Contains allergens`
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium text-red-600">Not safe for {activeProfileName || 'you'}</span>
+                        {safetyCheck.problemIngredients && safetyCheck.problemIngredients.length > 0 && (
+                          <div>
+                            <span className="text-xs">Contains allergens:</span>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {safetyCheck.problemIngredients.map((allergen, idx) => (
+                                <Badge key={idx} variant="destructive" className="text-xs py-0">{allergen}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </TooltipContent>
                 </Tooltip>

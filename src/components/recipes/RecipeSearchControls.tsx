@@ -99,11 +99,11 @@ const RecipeSearchControls = ({
                   variant={cuisineFilter.includes(cuisine) ? "default" : "outline"}
                   className={`cursor-pointer ${cuisineFilter.includes(cuisine) ? 'bg-green-600' : 'hover:bg-green-100'}`}
                   onClick={() => {
-                    setCuisineFilter(prev => 
-                      prev.includes(cuisine)
-                        ? prev.filter(c => c !== cuisine)
-                        : [...prev, cuisine]
-                    );
+                    if (cuisineFilter.includes(cuisine)) {
+                      setCuisineFilter(cuisineFilter.filter(c => c !== cuisine));
+                    } else {
+                      setCuisineFilter([...cuisineFilter, cuisine]);
+                    }
                   }}
                 >
                   {cuisine}
@@ -121,11 +121,11 @@ const RecipeSearchControls = ({
                     variant={allergenFilter.includes(allergen) ? "destructive" : "outline"}
                     className="cursor-pointer"
                     onClick={() => {
-                      setAllergenFilter(prev => 
-                        prev.includes(allergen)
-                          ? prev.filter(a => a !== allergen)
-                          : [...prev, allergen]
-                      );
+                      if (allergenFilter.includes(allergen)) {
+                        setAllergenFilter(allergenFilter.filter(a => a !== allergen));
+                      } else {
+                        setAllergenFilter([...allergenFilter, allergen]);
+                      }
                     }}
                   >
                     {allergen}

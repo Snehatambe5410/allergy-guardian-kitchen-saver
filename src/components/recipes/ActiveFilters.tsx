@@ -38,7 +38,7 @@ const ActiveFilters = ({
           {cuisine}
           <button
             className="ml-1 rounded-full hover:bg-green-200"
-            onClick={() => setCuisineFilter(prev => prev.filter(c => c !== cuisine))}
+            onClick={() => setCuisineFilter(cuisineFilter.filter(c => c !== cuisine))}
           >
             ×
           </button>
@@ -49,7 +49,7 @@ const ActiveFilters = ({
           No {allergen}
           <button
             className="ml-1 rounded-full hover:bg-red-400"
-            onClick={() => setAllergenFilter(prev => prev.filter(a => a !== allergen))}
+            onClick={() => setAllergenFilter(allergenFilter.filter(a => a !== allergen))}
           >
             ×
           </button>
