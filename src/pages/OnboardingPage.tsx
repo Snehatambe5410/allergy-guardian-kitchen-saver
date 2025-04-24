@@ -63,7 +63,7 @@ const OnboardingPage = () => {
     }
   };
 
-  // Handlers for allergies
+  // Enhanced handlers for allergies
   const addAllergy = () => {
     setAllergies([...allergies, { name: '', severity: 'mild' }]);
   };
@@ -72,6 +72,9 @@ const OnboardingPage = () => {
     const updatedAllergies = [...allergies];
     if (field === 'name') {
       updatedAllergies[index].name = value;
+      if (value.trim()) {
+        toast.success(`Allergy "${value}" added successfully`);
+      }
     } else if (field === 'severity') {
       updatedAllergies[index].severity = value as 'mild' | 'moderate' | 'severe';
     }

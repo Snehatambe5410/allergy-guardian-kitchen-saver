@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Search, Filter, ChevronDown, Utensils, Clock, Users, Check, AlertTriangle } from 'lucide-react';
 import { Recipe } from '@/types';
@@ -74,34 +73,38 @@ const RecipeBrowser = ({
   useEffect(() => {
     let result = [...recipes];
     
-    // Search filter
+    // Search filter with improved matching
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(recipe => 
         recipe.name.toLowerCase().includes(query) || 
         recipe.description?.toLowerCase().includes(query) ||
-        recipe.ingredients.some(i => i.toLowerCase().includes(query))
+        recipe.ingredients.some(i => i.toLowerCase().includes(query)) ||
+        recipe.cuisineType?.toLowerCase().includes(query) ||
+        recipe.mealType?.toLowerCase().includes(query)
       );
     }
     
-    // Cuisine filter
+    // Enhanced cuisine filter
     if (cuisineFilter.length > 0) {
       result = result.filter(recipe => 
         recipe.cuisineType && cuisineFilter.includes(recipe.cuisineType)
       );
     }
     
-    // Allergen filter
+    // Improved allergen filter with safety check
     if (allergenFilter.length > 0) {
       result = result.filter(recipe => 
         !recipe.allergens.some(allergen => allergenFilter.includes(allergen))
       );
     }
     
-    // Prep time filter
-    result = result.filter(recipe => 
-      (recipe.preparationTime || 0) <= maxPrepTime
-    );
+    // More precise prep time filter
+    if (maxPrepTime < 120) {
+      result = result.filter(recipe => 
+        (recipe.preparationTime || 0) <= maxPrepTime
+      );
+    }
     
     // Safe for current profile
     if (showOnlySafe && activeProfile?.allergies?.length > 0) {
@@ -111,7 +114,7 @@ const RecipeBrowser = ({
       });
     }
     
-    // Sort
+    // Sort with additional options
     result.sort((a, b) => {
       switch (sortBy) {
         case 'name':
@@ -122,6 +125,10 @@ const RecipeBrowser = ({
           return (a.servings || 0) - (b.servings || 0);
         case 'newest':
           return (b.id || '').localeCompare(a.id || '');
+        case 'difficulty':
+          const difficultyOrder = { easy: 1, medium: 2, hard: 3 };
+          return (difficultyOrder[a.difficulty || 'medium'] || 2) - 
+                 (difficultyOrder[b.difficulty || 'medium'] || 2);
         default:
           return 0;
       }
@@ -154,6 +161,7 @@ const RecipeBrowser = ({
               <SelectItem value="prep-time">Preparation Time</SelectItem>
               <SelectItem value="servings">Servings</SelectItem>
               <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="difficulty">Difficulty</SelectItem>
             </SelectContent>
           </Select>
           

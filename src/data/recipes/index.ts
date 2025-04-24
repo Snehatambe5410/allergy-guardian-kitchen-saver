@@ -6,12 +6,14 @@ import { indianRecipes } from "./indianRecipes";
 import { italianRecipes } from "./italianRecipes";
 import { internationalRecipes } from "./internationalRecipes";
 import { breakfastRecipes } from "./breakfastRecipes";
+import { sandwichRecipes } from "./sandwichRecipes";
 
 export const sampleRecipes: SampleRecipe[] = [
   ...indianRecipes,
   ...italianRecipes,
   ...internationalRecipes,
-  ...breakfastRecipes
+  ...breakfastRecipes,
+  ...sandwichRecipes
 ];
 
 export const importSampleRecipe = (sampleRecipe: SampleRecipe): Recipe => {
